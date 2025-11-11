@@ -20,7 +20,7 @@ if "chat_history" not in st.session_state:
 user_input = st.text_input("Kirjoita viesti:")
 
 vastaukset = {
-    "palautus": "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä.",
+    "palautus": "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä!",
     "toimitus": "Toimitamme tuotteet 2–5 arkipäivässä.",
     "aukiolo": "Asiakaspalvelumme on auki ma–pe klo 9–17."
 }
@@ -47,3 +47,4 @@ if user_input:
 # Näytetään keskusteluhistoria
 for sender, msg in st.session_state.chat_history:
     st.write(f"**{sender}:** {msg}")
+
