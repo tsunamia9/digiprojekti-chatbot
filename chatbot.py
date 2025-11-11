@@ -11,6 +11,7 @@ with open(file_path, "r", encoding="utf-8") as f:
     tuotteet = json.load(f)
 
 st.title("Verkkokaupan Chatbot")
+st.write("Hei! Olen verkkokaupan chatbot ja autan sinua mielelläni. Kuinka voin olla avuksi?")
 
 # Tallennetaan keskustelu streamlitissä
 if "chat_history" not in st.session_state:
@@ -20,7 +21,7 @@ if "chat_history" not in st.session_state:
 user_input = st.text_input("Kirjoita viesti:")
 
 vastaukset = {
-    "palautus": "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä!",
+    "palautus": "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä.",
     "toimitus": "Toimitamme tuotteet 2–5 arkipäivässä.",
     "aukiolo": "Asiakaspalvelumme on auki ma–pe klo 9–17."
 }
@@ -47,4 +48,5 @@ if user_input:
 # Näytetään keskusteluhistoria
 for sender, msg in st.session_state.chat_history:
     st.write(f"**{sender}:** {msg}")
+
 
