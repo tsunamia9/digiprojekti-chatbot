@@ -138,4 +138,3 @@ for sender, msg in st.session_state.chat_history[-50:]:  # Näytetään max 50 v
 
 
 
-
