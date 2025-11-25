@@ -33,8 +33,8 @@ if "awaiting_confirmation" not in st.session_state:
     st.session_state.awaiting_confirmation = False
 
 # --- Vastaukset ja FAQ ---
-positive_replies = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
-negative_replies = ["ei", "en", "en oikein", "en halua"]
+positive_replies = ["kyl", "jea", "jep", "juu", "joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
+negative_replies = ["noup", "ei", "en", "en oikein", "en halua"]
 
 # --- Yleiset FAQ-vastaukset ---
 general_faq = {
@@ -101,7 +101,7 @@ def get_vastaus(kysymys: str) -> str:
     if "lopeta" in kysymys:
         st.session_state.awaiting_confirmation = False
         st.session_state.last_topic = None
-        return "Näkemiin! Toivottavasti olin avuksi 😊"
+        return "Näkemiin! 👋 Toivottavasti olin avuksi. Mukavaa päivänjatkoa! 😊"
 
     # --- Jos odotetaan vahvistusta ---
     if st.session_state.awaiting_confirmation:
@@ -110,7 +110,7 @@ def get_vastaus(kysymys: str) -> str:
         if positive or negative:
             st.session_state.awaiting_confirmation = False
             st.session_state.last_topic = None
-            return "Kiitos tiedosta! 😊"
+            return "Hienoa! 😄 Oli ilo auttaa sinua!"
 
     # --- Ystävälliset vastaukset ---
     tervehdykset = ["miten menee", "haloo", "moro", "hei", "moi", "terve", "hello", "päivää"]
@@ -125,7 +125,7 @@ def get_vastaus(kysymys: str) -> str:
         ])
     if any(sana in kysymys for sana in kiitokset):
         return random.choice([
-            "Ole hyvä! 💙 Kiva että pystyin auttamaan.",
+            "Ole hyvä! 😊 Kiva että pystyin auttamaan.",
             "Ei kestä! 😊",
             "Aina ilo auttaa!"
         ])
@@ -183,6 +183,8 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
+
 
 
 
