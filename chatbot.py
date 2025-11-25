@@ -30,7 +30,7 @@ if "chat_history" not in st.session_state:
 if "last_topic" not in st.session_state:
     st.session_state.last_topic = None
 if "awaiting_confirmation" not in st.session_state:
-    st.session_state.awaiting_confirmation = False  # odottaa käyttäjän vastausta "Auttoiko tämä?"
+    st.session_state.awaiting_confirmation = False
 
 # --- Vastaukset ---
 positive_replies = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
@@ -39,13 +39,22 @@ negative_replies = ["ei", "en", "en oikein", "en halua"]
 # --- Yleisesti kysytyt kysymykset ja vastaukset ---
 general_faq = {
     "toimituskulut": "Toimituskulut määräytyvät tilauksen koon ja toimitustavan mukaan. Perustoimitus Suomessa on 4,90€.",
+    "toimitusaika": "Toimitusaika Suomessa on yleensä 2–5 arkipäivää tilauksen vahvistamisesta.",
+    "seurantalinkki": "Voit seurata pakettisi sijaintia saamallasi seurantakoodilla verkkosivullamme.",
     "palautus": "Palautus onnistuu 30 päivän sisällä ostopäivästä. Täytä palautuslomake tililläsi, pakkaa tuote ja lähetä takaisin.",
     "vaihto": "Voit vaihtaa tuotteen 30 päivän sisällä ostopäivästä. Täytä vaihtolomake ja lähetä vanha tuote takaisin.",
     "lahjakortti": "Tarjoamme lahjakortteja, jotka ovat voimassa 12 kuukautta ostopäivästä.",
     "asiakaspalvelu": "Asiakaspalvelumme tavoitat:\n- 📞 09 123 4567\n- 📧 support@verkkokauppa.fi\n- ⏰ ma–pe 9–17",
     "kampanjat": "Seuraa uutiskirjettä ja some-kanavia ajankohtaisista kampanjoista ja erikoistarjouksista.",
-    "varasto": "Voit tarkistaa tuotteen saatavuuden tuotesivulta. Useimmiten päivitämme varastosaldon reaaliajassa.",
-    "maksutavat": "Hyväksymme maksutavat: kortti, PayPal ja Klarna. Maksu on turvallinen ja varmennettu."
+    "varasto": "Voit tarkistaa tuotteen saatavuuden tuotesivulta. Päivitämme varastosaldon reaaliajassa.",
+    "maksutavat": "Hyväksymme maksutavat: kortti, PayPal ja Klarna. Maksu on turvallinen ja varmennettu.",
+    "takuuaika": "Tuotteilla on 12 kuukauden takuu ostopäivästä, ellei tuotekohtaisesti toisin mainita.",
+    "tilauksen_muokkaus": "Voit muokata tilaustasi 1–2 tunnin sisällä sen tekemisestä. Ota tarvittaessa yhteyttä asiakaspalveluun.",
+    "alennuskoodi": "Syötä alennuskoodi kassalla kenttään 'Koodin syöttö'. Varmista, että koodi on voimassa.",
+    "kirjautuminen": "Jos et pääse kirjautumaan, tarkista sähköposti ja salasana. Voit myös käyttää 'Unohditko salasanasi?' -linkkiä.",
+    "kansainvälinen_toimitus": "Toimitamme EU-maihin ja muualle maailmaan. Toimituskulut ja -ajat vaihtelevat maittain.",
+    "tuotetiedot": "Tuotesivuilla on saatavilla materiaalit, koot, värit ja yhteensopivuusohjeet.",
+    "tilausvahvistus": "Saat tilausvahvistuksen ja laskun sähköpostiisi heti tilauksen jälkeen."
 }
 
 # --- Funktio vastauksen hakemiseen ---
@@ -89,12 +98,7 @@ def get_vastaus(kysymys: str) -> str:
         elif topic == "tuki_kysymys":
             st.session_state.awaiting_confirmation = False
             st.session_state.last_topic = None
-            return (
-                "Tässä asiakaspalvelumme tiedot:\n"
-                "- 📞 Puhelin: 09 123 4567\n"
-                "- 📧 Sähköposti: support@verkkokauppa.fi\n"
-                "- ⏰ Aukiolo: ma–pe 9–17"
-            )
+            return general_faq["asiakaspalvelu"]
 
     # --- Ystävälliset vastaukset ---
     tervehdykset = ["miten menee", "haloo", "moro", "hei", "moi", "terve", "hello", "päivää"]
@@ -127,44 +131,47 @@ def get_vastaus(kysymys: str) -> str:
         )
         return f"Tässä meidän tuotteet:\n{lista}"
 
-    # --- Pehmeä avainsanahaku ja syvä vastaus ---
-    if any(word in kysymys for word in ["palaut", "palauta", "palautus"]):
-        st.session_state.last_topic = "palautus"
-        st.session_state.awaiting_confirmation = True
-        return general_faq["palautus"] + "\n\nAuttoiko tämä sinua? 😊"
+    # --- FAQ-avainsanat ---
+    faq_keywords = {
+        "palaut": "palautus",
+        "palauta": "palautus",
+        "toimit": "toimituskulut",
+        "kuljet": "toimituskulut",
+        "paket": "toimituskulut",
+        "maksu": "maksutavat",
+        "kortti": "maksutavat",
+        "paypal": "maksutavat",
+        "klarna": "maksutavat",
+        "alenn": "kampanjat",
+        "kampanj": "kampanjat",
+        "kampanjo": "kampanjat",
+        "tarjou": "kampanjat",
+        "tilausseuranta": "seurantalinkki",
+        "seuranta": "seurantalinkki",
+        "vaihto": "vaihto",
+        "vaihda": "vaihto",
+        "lahja": "lahjakortti",
+        "lahjakortti": "lahjakortti",
+        "asiakas": "asiakaspalvelu",
+        "tuki": "asiakaspalvelu",
+        "yhteys": "asiakaspalvelu",
+        "toimitusaika": "toimitusaika",
+        "taku": "takuuaika",
+        "muokkaus": "tilauksen_muokkaus",
+        "peruuta": "tilauksen_muokkaus",
+        "koodi": "alennuskoodi",
+        "kirjaudu": "kirjautuminen",
+        "valuutta": "kansainvälinen_toimitus",
+        "tuotetiedot": "tuotetiedot",
+        "lasku": "tilausvahvistus",
+        "kuitti": "tilausvahvistus"
+    }
 
-    if any(word in kysymys for word in ["toimit", "kuljet", "paket"]):
-        st.session_state.last_topic = "toimitus"
-        st.session_state.awaiting_confirmation = True
-        return general_faq["toimituskulut"] + "\n\nAuttoiko tämä sinua? 😊"
-
-    if any(word in kysymys for word in ["maksu", "kortti", "paypal", "klarna"]):
-        st.session_state.last_topic = "maksutavat"
-        st.session_state.awaiting_confirmation = True
-        return general_faq["maksutavat"] + "\n\nAuttoiko tämä sinua? 😊"
-
-    if any(word in kysymys for word in ["alenn", "kampanj", "kampanjo", "tarjou"]):
-        st.session_state.last_topic = "alennukset"
-        st.session_state.awaiting_confirmation = True
-        return general_faq["kampanjat"] + "\n\nHaluatko tietää vielä enemmän alennuksista ja kampanjoista? 😊"
-
-    if any(word in kysymys for word in ["tilausseuranta", "seuranta"]):
-        st.session_state.last_topic = "tilausseuranta"
-        st.session_state.awaiting_confirmation = True
-        return "Voit seurata tilaustasi kirjautumalla tilillesi.\n\nAuttoiko tämä sinua? 😊"
-
-    if any(word in kysymys for word in ["vaihto", "vaihda"]):
-        st.session_state.last_topic = "vaihto"
-        st.session_state.awaiting_confirmation = True
-        return general_faq["vaihto"] + "\n\nAuttoiko tämä sinua? 😊"
-
-    if any(word in kysymys for word in ["lahja", "lahjakortti"]):
-        return general_faq["lahjakortti"]
-
-    if any(word in kysymys for word in ["asiakas", "tuki", "yhteys"]):
-        st.session_state.last_topic = None
-        st.session_state.awaiting_confirmation = False
-        return general_faq["asiakaspalvelu"]
+    for key, topic in faq_keywords.items():
+        if key in kysymys:
+            st.session_state.last_topic = topic
+            st.session_state.awaiting_confirmation = True
+            return general_faq.get(topic, "Valitettavasti en löytänyt tietoa tästä aiheesta.") + "\n\nAuttoiko tämä sinua? 😊"
 
     # --- Fallback ---
     st.session_state.last_topic = "tuki_kysymys"
