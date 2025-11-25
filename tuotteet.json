@@ -1,5 +1,59 @@
 [
-    {"nimi": "T-paita", "kategoria": "Vaatteet"},
-    {"nimi": "Lenkkarit", "kategoria": "Kengät"},
-    {"nimi": "Juomapullo", "kategoria": "Urheilu"}
+    {
+        "nimi": "Langaton kuulokemikrofoni",
+        "kategoria": "Elektroniikka",
+        "hinta": 79.90,
+        "varastosaldo": 25,
+        "kuvaus": "Korkealaatuiset langattomat kuulokkeet, joissa mikrofoni ja 20h akunkesto."
+    },
+    {
+        "nimi": "Bluetooth-kaiutin",
+        "kategoria": "Elektroniikka",
+        "hinta": 49.90,
+        "varastosaldo": 40,
+        "kuvaus": "Kannettava kaiutin, vedenkestävä ja erinomainen äänenlaatu."
+    },
+    {
+        "nimi": "Juomapullo 1L",
+        "kategoria": "Urheilu",
+        "hinta": 12.50,
+        "varastosaldo": 100,
+        "kuvaus": "Kevyt ja kestävä juomapullo urheiluun ja retkeilyyn."
+    },
+    {
+        "nimi": "Treenihousut M",
+        "kategoria": "Vaatteet",
+        "hinta": 34.90,
+        "varastosaldo": 60,
+        "kuvaus": "Mukavat ja joustavat treenihousut miehille, koko M."
+    },
+    {
+        "nimi": "Joogamatto",
+        "kategoria": "Urheilu",
+        "hinta": 29.90,
+        "varastosaldo": 50,
+        "kuvaus": "Liukumaton joogamatto, paksuus 6 mm, helppo rullata."
+    },
+    {
+        "nimi": "Kirja: Python-ohjelmointi",
+        "kategoria": "Kirjat",
+        "hinta": 39.90,
+        "varastosaldo": 30,
+        "kuvaus": "Opas aloittelijoille ja edistyneille Python-ohjelmoijille."
+    },
+    {
+        "nimi": "Sähköhammasharja",
+        "kategoria": "Elektroniikka",
+        "hinta": 59.90,
+        "varastosaldo": 20,
+        "kuvaus": "Sähköhammasharja, 3 harjaustilaa ja langaton lataus."
+    },
+    {
+        "nimi": "Lahjakortti 50€",
+        "kategoria": "Lahjakortit",
+        "hinta": 50.00,
+        "varastosaldo": 9999,
+        "kuvaus": "Voimassa 12 kuukautta, käytettävissä koko valikoimaan."
+    }
 ]
+
