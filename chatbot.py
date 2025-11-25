@@ -107,10 +107,16 @@ def get_vastaus(kysymys: str) -> str:
     if st.session_state.awaiting_confirmation:
         positive = any(word in kysymys for word in positive_replies)
         negative = any(word in kysymys for word in negative_replies)
-        if positive or negative:
-            st.session_state.awaiting_confirmation = False
-            st.session_state.last_topic = None
-            return "Kiitos tiedosta! 😊"
+        topic = st.session_state.last_topic
+
+        st.session_state.awaiting_confirmation = False
+        st.session_state.last_topic = None
+
+        if positive:
+            return "Hienoa! 😊 Jos tarvitset lisää apua, kysy vain."
+        if negative:
+            # Jos käyttäjä vastaa "ei", annetaan asiakaspalvelun tiedot
+            return general_faq.get("asiakaspalvelu", "Asiakaspalvelun tiedot eivät ole saatavilla. 🙁")
 
     # --- Ystävälliset vastaukset ---
     tervehdykset = ["miten menee", "haloo", "moro", "hei", "moi", "terve", "hello", "päivää"]
@@ -183,6 +189,7 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
 
 
 
