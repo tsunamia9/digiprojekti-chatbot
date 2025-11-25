@@ -13,9 +13,12 @@ with open(file_path, "r", encoding="utf-8") as f:
 st.title("Verkkokaupan Chatbot")
 st.write("Hei! Olen verkkokaupan chatbot 🤖 Kuinka voin auttaa?")
 
-# Tallennetaan keskustelu
+# Tallennetaan keskustelu ja chatbotin tila
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+
+if "odottaa_aspa_vastausta" not in st.session_state:
+    st.session_state.odottaa_aspa_vastausta = False
 
 # Käyttäjän syöte
 user_input = st.text_input("Kirjoita viesti:")
@@ -27,43 +30,15 @@ vastaukset = {
     "aukiolo": "Asiakaspalvelumme on auki ma–pe klo 9–17."
 }
 
+asiakaspalvelu_tiedot = (
+    "Tässä asiakaspalvelun yhteystiedot:\n"
+    "📞 Puhelin: 010 123 4567\n"
+    "📧 Sähköposti: asiakaspalvelu@verkkokauppa.fi\n"
+    "🕑 Aukioloajat: ma–pe klo 9–17"
+)
+
 # --- LOGIIKKA ---
-if user_input:
-    kysymys = user_input.lower()
-    st.session_state.chat_history.append(("user", user_input))
-
-    # Lopetus
-    if kysymys == "lopeta":
-        vastaus = "Näkemiin! Toivottavasti olin avuksi."
-
-    # Tuotelistaus
-    elif "tuotte" in kysymys:
-        lista = "\n".join([f"- {t['nimi']} ({t['kategoria']})" for t in tuotteet])
-        vastaus = f"Tässä tuotteet:\n{lista}"
-
-    # --- AVAINSANAEHTOJA ---
-    elif "palaut" in kysymys:
-        vastaus = vastaukset["palautus"]
-
-    elif "toimit" in kysymys or "kuljet" in kysymys or "paket" in kysymys:
-        vastaus = vastaukset["toimitus"]
-
-    elif "auki" in kysymys or "ajat" in kysymys or "milloin olette auki" in kysymys:
-        vastaus = vastaukset["aukiolo"]
-
-    else:
-        vastaus = "Valitettavasti en tiedä siitä. Kysy jotain muuta verkkokauppaan liittyvää."
-
-    # Tallennetaan bottiviesti
-    st.session_state.chat_history.append(("assistant", vastaus))
-
-
-# --- CHATTINÄKYMÄ ---
-for sender, msg in st.session_state.chat_history:
-    if sender == "user":
-        st.chat_message("user").write(msg)
-    else:
-        st.chat_message("assistant").write(msg)
+if use
 
 
 
