@@ -18,12 +18,8 @@ st.markdown("""
 base_path = os.path.dirname(__file__)
 file_path = os.path.join(base_path, "tuotteet.json")
 
-try:
-    with open(file_path, "r", encoding="utf-8") as f:
-        tuotteet = json.load(f)
-except Exception as e:
-    tuotteet = []
-    print("Virhe ladattaessa tuotteita:", e)
+with open(file_path, "r", encoding="utf-8") as f:
+    tuotteet = json.load(f)
 
 st.title("Verkkokaupan Chatbot 🤖")
 st.write("Hei! Olen verkkokaupan chatbot. Kuinka voin auttaa?")
@@ -35,40 +31,86 @@ if "last_topic" not in st.session_state:
     st.session_state.last_topic = None
 if "awaiting_confirmation" not in st.session_state:
     st.session_state.awaiting_confirmation = False
+if "awaiting_followup" not in st.session_state:
+    st.session_state.awaiting_followup = False  # uusi jatkokysymys-tila
 
 # --- Vastaukset ja FAQ ---
 positive_replies = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
 negative_replies = ["ei", "en", "en oikein", "en halua"]
 
-# --- Yleiset FAQ-vastaukset ---
+# --- Yleiset FAQ-vastaukset ja lisätiedot ---
 general_faq = {
-    "palautus": "Palautus onnistuu 30 päivän sisällä ostopäivästä. Täytä palautuslomake tililläsi, pakkaa tuote ja lähetä takaisin.",
-    "palautus_lisä": "Varmista, että tuote on alkuperäisessä kunnossa ja kaikki lisävarusteet mukana. Tarvittaessa voit tulostaa palautuslomakkeen verkkosivuiltamme uudelleen.",
-    "vaihto": "Voit vaihtaa tuotteen 30 päivän sisällä ostopäivästä. Täytä vaihtolomake ja lähetä vanha tuote takaisin.",
-    "vaihto_lisä": "Huomioi, että uusi tuote lähetetään heti kun vanha tuote on vastaanotettu. Jos haluat nopeamman toimituksen, ota yhteys asiakaspalveluun.",
-    "toimituskulut": "Toimituskulut määräytyvät tilauksen koon ja toimitustavan mukaan. Perustoimitus Suomessa on 4,90€.",
-    "toimituskulut_lisä": "Jos tilaat useamman tuotteen, saatamme yhdistää toimitukset. Express-toimitus on mahdollinen lisämaksusta.",
-    "toimitusaika": "Toimitusaika Suomessa on yleensä 2–5 arkipäivää tilauksen vahvistamisesta.",
-    "toimitusaika_lisä": "Viivästyksen sattuessa saat seurantakoodilla tarkemmat tiedot toimituksesta.",
-    "seurantalinkki": "Voit seurata pakettisi sijaintia saamallasi seurantakoodilla verkkosivullamme.",
-    "maksutavat": "Hyväksymme maksutavat: kortti, PayPal ja Klarna. Maksu on turvallinen ja varmennettu.",
-    "maksutavat_lisä": "Korttimaksu tapahtuu salatulla yhteydellä, PayPal ja Klarna varmistavat maksun turvallisuuden.",
-    "kampanjat": "Seuraa uutiskirjettä ja some-kanavia ajankohtaisista kampanjoista ja erikoistarjouksista.",
-    "kampanjat_lisä": "Lisäksi jotkut tuotteet sisältävät automaattisesti alennuksia kassalla. Tarkista tuotteen sivulta voimassa olevat kampanjat.",
-    "varasto": "Voit tarkistaa tuotteen saatavuuden tuotesivulta. Päivitämme varastosaldon reaaliajassa.",
-    "takuuaika": "Tuotteilla on 12 kuukauden takuu ostopäivästä, ellei tuotekohtaisesti toisin mainita.",
-    "tilauksen_muokkaus": "Voit muokata tilaustasi 1–2 tunnin sisällä sen tekemisestä. Ota tarvittaessa yhteyttä asiakaspalveluun.",
-    "tilauksen_muokkaus_lisä": "Muokkaus sisältää osoitteen, toimitustavan ja lisätilaukset. Tilauksen peruuttaminen onnistuu vain 2 tunnin sisällä.",
-    "alennuskoodi": "Syötä alennuskoodi kassalla kenttään 'Koodin syöttö'. Varmista, että koodi on voimassa.",
-    "alennuskoodi_lisä": "Jos koodi ei toimi, tarkista voimassaoloaika tai ota yhteyttä asiakaspalveluun.",
-    "kirjautuminen": "Jos et pääse kirjautumaan, tarkista sähköposti ja salasana. Voit myös käyttää 'Unohditko salasanasi?' -linkkiä.",
-    "kansainvälinen_toimitus": "Toimitamme EU-maihin ja muualle maailmaan. Toimituskulut ja -ajat vaihtelevat maittain.",
-    "tuotetiedot": "Tuotesivuilla on saatavilla materiaalit, koot, värit ja yhteensopivuusohjeet.",
-    "tilausvahvistus": "Saat tilausvahvistuksen ja laskun sähköpostiisi heti tilauksen jälkeen.",
-    "lahjakortti": "Tarjoamme lahjakortteja, jotka ovat voimassa 12 kuukautta ostopäivästä.",
-    "asiakaspalvelu": "Asiakaspalvelumme tavoitat:\n- 📞 09 123 4567\n- 📧 support@verkkokauppa.fi\n- ⏰ ma–pe 9–17"
+    "palautus": {
+        "basic": "Palautus onnistuu 30 päivän sisällä ostopäivästä. Täytä palautuslomake tililläsi, pakkaa tuote ja lähetä takaisin.",
+        "extra": "Varmista, että tuotteen pakkaus on ehjä ja liitä mukaan kuitti. Tarvittaessa ota yhteyttä asiakaspalveluun, jos palautus ei onnistu."
+    },
+    "vaihto": {
+        "basic": "Voit vaihtaa tuotteen 30 päivän sisällä ostopäivästä. Täytä vaihtolomake ja lähetä vanha tuote takaisin.",
+        "extra": "Jos haluat vaihtaa eri kokoisen tuotteen, muista merkitä uusi koko lomakkeeseen. Express-vaihto onnistuu lisämaksusta."
+    },
+    "toimituskulut": {
+        "basic": "Toimituskulut määräytyvät tilauksen koon ja toimitustavan mukaan. Perustoimitus Suomessa on 4,90€.",
+        "extra": "Jos tilaat useamman tuotteen, saatamme yhdistää toimitukset. Express-toimitus on mahdollinen lisämaksusta."
+    },
+    "toimitusaika": {
+        "basic": "Toimitusaika Suomessa on yleensä 2–5 arkipäivää tilauksen vahvistamisesta.",
+        "extra": "Viivästyksen sattuessa saat seurantakoodilla tarkemmat tiedot toimituksesta."
+    },
+    "seurantalinkki": {
+        "basic": "Voit seurata pakettisi sijaintia saamallasi seurantakoodilla verkkosivullamme.",
+        "extra": "Seurantakoodi löytyy tilausvahvistussähköpostista tai tilisi 'Omat tilaukset' -osiosta."
+    },
+    "maksutavat": {
+        "basic": "Hyväksymme maksutavat: kortti, PayPal ja Klarna. Maksu on turvallinen ja varmennettu.",
+        "extra": "Korttimaksussa veloitetaan heti, Klarna mahdollistaa eräpäivän, PayPal tarjoaa lisäturvaa."
+    },
+    "kampanjat": {
+        "basic": "Seuraa uutiskirjettä ja some-kanavia ajankohtaisista kampanjoista ja erikoistarjouksista.",
+        "extra": "Uutiskirjeen tilaajat saavat usein lisäkampanjoita ja alennuskoodeja."
+    },
+    "varasto": {
+        "basic": "Voit tarkistaa tuotteen saatavuuden tuotesivulta. Päivitämme varastosaldon reaaliajassa.",
+        "extra": "Jos tuote on loppu, voit tilata ilmoituksen, kun se tulee varastoon."
+    },
+    "takuuaika": {
+        "basic": "Tuotteilla on 12 kuukauden takuu ostopäivästä.",
+        "extra": "Joissakin tuotteissa takuu voi olla pidempi; tarkista tuotesivulta."
+    },
+    "tilauksen_muokkaus": {
+        "basic": "Voit muokata tilaustasi 1–2 tunnin sisällä sen tekemisestä.",
+        "extra": "Jos tilaus on jo lähetetty, ota yhteyttä asiakaspalveluun peruutusta varten."
+    },
+    "alennuskoodi": {
+        "basic": "Syötä alennuskoodi kassalla kenttään 'Koodin syöttö'. Varmista, että koodi on voimassa.",
+        "extra": "Jos koodi ei toimi, tarkista voimassaoloaika ja kampanjan ehdot."
+    },
+    "kirjautuminen": {
+        "basic": "Jos et pääse kirjautumaan, tarkista sähköposti ja salasana.",
+        "extra": "Voit myös käyttää 'Unohditko salasanasi?' -linkkiä tai palauttaa salasanan."
+    },
+    "kansainvälinen_toimitus": {
+        "basic": "Toimitamme EU-maihin ja muualle maailmaan. Toimituskulut ja -ajat vaihtelevat maittain.",
+        "extra": "Tarkista kansainvälisen toimituksen hinnat ja tullimaksut tilauksen yhteydessä."
+    },
+    "tuotetiedot": {
+        "basic": "Tuotesivuilla on saatavilla materiaalit, koot, värit ja yhteensopivuusohjeet.",
+        "extra": "Jos tarvitset lisätietoja, ota yhteyttä asiakaspalveluun."
+    },
+    "tilausvahvistus": {
+        "basic": "Saat tilausvahvistuksen ja laskun sähköpostiisi heti tilauksen jälkeen.",
+        "extra": "Jos et saanut sähköpostia, tarkista roskapostikansio tai ota yhteyttä asiakaspalveluun."
+    },
+    "lahjakortti": {
+        "basic": "Tarjoamme lahjakortteja, jotka ovat voimassa 12 kuukautta ostopäivästä.",
+        "extra": "Lahjakortti voidaan käyttää useammassa ostoksessa kunnes arvo on käytetty."
+    },
+    "asiakaspalvelu": {
+        "basic": "Asiakaspalvelumme tavoitat:\n- 📞 09 123 4567\n- 📧 support@verkkokauppa.fi\n- ⏰ ma–pe 9–17",
+        "extra": "Voit myös kysyä chatbotilta ohjeita useisiin aiheisiin."
+    }
 }
 
+# --- FAQ-avainsanat ---
 faq_keywords = {
     "palaut": "palautus",
     "palauta": "palautus",
@@ -104,36 +146,46 @@ faq_keywords = {
     "kuitti": "tilausvahvistus"
 }
 
+# --- Funktio vastauksen hakemiseen ---
 def get_vastaus(kysymys: str) -> str:
     kysymys = kysymys.lower()
 
     # --- Lopetus ---
-    if any(word in kysymys for word in ["lopeta", "näkemiin", "hei hei"]):
+    if "lopeta" in kysymys or "näkemiin" in kysymys or "kuulemiin" in kysymys:
         st.session_state.awaiting_confirmation = False
+        st.session_state.awaiting_followup = False
         st.session_state.last_topic = None
         return "Näkemiin! 👋 Toivottavasti olin avuksi. Mukavaa päivänjatkoa! 😊"
 
-    # --- Vahvistus ---
-    if st.session_state.awaiting_confirmation:
+    # --- Jos odotetaan jatkokysymystä ---
+    if st.session_state.awaiting_followup and st.session_state.last_topic:
         positive = any(word in kysymys for word in positive_replies)
         negative = any(word in kysymys for word in negative_replies)
-        last_topic = st.session_state.last_topic
-        st.session_state.awaiting_confirmation = False
+        topic = st.session_state.last_topic
+        if negative:
+            return general_faq[topic]["extra"] + "\n\nHaluatko vielä lisätietoa tästä aiheesta? 😊"
+        elif positive:
+            st.session_state.awaiting_followup = False
+            st.session_state.last_topic = None
+            return "Hienoa! 😄 Oli ilo auttaa sinua!"
+        else:
+            # jos käyttäjä kirjoittaa jotain muuta, annetaan extra-info
+            return general_faq[topic]["extra"] + "\n\nHaluatko vielä lisätietoa tästä aiheesta? 😊"
 
+    # --- Jos odotetaan vahvistusta ---
+    if st.session_state.awaiting_confirmation and st.session_state.last_topic:
+        positive = any(word in kysymys for word in positive_replies)
+        negative = any(word in kysymys for word in negative_replies)
+        topic = st.session_state.last_topic
         if positive:
+            st.session_state.awaiting_confirmation = False
+            st.session_state.awaiting_followup = False
             st.session_state.last_topic = None
             return "Hienoa! 😄 Oli ilo auttaa sinua!"
         elif negative:
-            # Jos käyttäjä vastaa ei, tarjotaan jatkokysymys lisäinfoa varten
-            if last_topic and last_topic + "_lisä" in general_faq:
-                return general_faq[last_topic + "_lisä"] + "\n\nHaluatko vielä lisätietoa tästä aiheesta? 😊"
-            else:
-                return (
-                    "Voi ei! 😕 Ei hätää, voit olla suoraan yhteydessä asiakaspalveluumme:\n"
-                    "- 📞 09 123 4567\n"
-                    "- 📧 support@verkkokauppa.fi\n"
-                    "- ⏰ ma–pe 9–17"
-                )
+            st.session_state.awaiting_confirmation = False
+            st.session_state.awaiting_followup = True
+            return general_faq[topic]["extra"] + "\n\nHaluatko vielä lisätietoa tästä aiheesta? 😊"
 
     # --- Ystävälliset vastaukset ---
     tervehdykset = ["miten menee", "haloo", "moro", "hei", "moi", "terve", "hello", "päivää"]
@@ -150,15 +202,13 @@ def get_vastaus(kysymys: str) -> str:
         return random.choice([
             "Hieno juttu! 😄 Oli ilo auttaa.",
             "Ei kestä! 😊",
-            "Aina ilo auttaa! 😄"
+            "Aina ilo auttaa!"
         ])
     if any(sana in kysymys for sana in kehumiset):
         return "Kiitos! 😄 Teen parhaani auttaakseni."
 
     # --- Tuotelistaus ---
     if "tuotteet" in kysymys or ("näytä" in kysymys and "tuotte" in kysymys):
-        if not tuotteet:
-            return "Valitettavasti tuotteita ei ole saatavilla juuri nyt."
         lista = "\n".join(
             [f"- {t['nimi']} ({t['kategoria']}) – {t.get('hinta','Hinta ei saatavilla')}€" for t in tuotteet]
         )
@@ -169,7 +219,7 @@ def get_vastaus(kysymys: str) -> str:
         if key in kysymys:
             st.session_state.last_topic = topic
             st.session_state.awaiting_confirmation = True
-            return general_faq.get(topic, "Valitettavasti en löytänyt tietoa tästä aiheesta.") + "\n\nAuttoiko tämä sinua? 😊"
+            return general_faq[topic]["basic"] + "\n\nAuttoiko tämä sinua? 😊"
 
     # --- Fallback käyttäjälle ---
     st.session_state.last_topic = "tuki_kysymys"
@@ -197,6 +247,7 @@ if st.button("Tyhjennä keskustelu"):
     st.session_state.chat_history = []
     st.session_state.last_topic = None
     st.session_state.awaiting_confirmation = False
+    st.session_state.awaiting_followup = False
 
 # --- Logiikka vastauksen hakemiseen ---
 if submit_button and user_input:
@@ -208,8 +259,6 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
-
-
 
 
 
