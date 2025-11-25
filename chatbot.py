@@ -38,8 +38,9 @@ def get_vastaus(kysymys: str) -> str:
     tervehdykset = ["hei", "moi", "terve", "hello", "päivää"]
     kiitokset = ["kiitos", "thx", "thanks", "kiitti"]
     kehumiset = ["hyvä", "kiva", "mahtava", "paras", "super"]
+    myonteiset = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "haluan", "kyllä kiitos"]
 
-    # Perusvastaukset
+    # Perus- ja syvät vastaukset
     vastaukset = {
         "palautus": "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä.",
         "palautus_syva": (
@@ -51,7 +52,7 @@ def get_vastaus(kysymys: str) -> str:
         ),
         "toimitus": "Toimitamme tuotteet 2–5 arkipäivässä.",
         "toimitus_syva": (
-            "Toimituksen voi seurata näin:\n"
+            "Toimituksen voit seurata näin:\n"
             "1. Saat seurantakoodin sähköpostilla.\n"
             "2. Pakkaukset toimitetaan valitulla kuljetustavalla.\n"
             "3. Jos toimitus viivästyy, ota yhteyttä asiakaspalveluun."
@@ -92,19 +93,20 @@ def get_vastaus(kysymys: str) -> str:
         "tuki": "Voit ottaa yhteyttä asiakaspalveluumme sähköpostitse support@verkkokauppa.fi."
     }
 
-    # --- Kysymys liittyy viimeiseen aiheeseen (syvempi vastaus) ---
-    if st.session_state.last_topic == "palautus" and any(word in kysymys for word in ["miten", "ohje", "kuinka", "käytäntö"]):
-        return vastaukset["palautus_syva"]
-    if st.session_state.last_topic == "toimitus" and any(word in kysymys for word in ["miten", "ohje", "kuinka"]):
-        return vastaukset["toimitus_syva"]
-    if st.session_state.last_topic == "maksutavat" and any(word in kysymys for word in ["miten", "ohje", "kuinka"]):
-        return vastaukset["maksutavat_syva"]
-    if st.session_state.last_topic == "alennukset" and any(word in kysymys for word in ["miten", "ohje", "kuinka", "tarjoukset"]):
-        return vastaukset["alennukset_syva"]
-    if st.session_state.last_topic == "tilausseuranta" and any(word in kysymys for word in ["miten", "ohje", "kuinka", "seuranta"]):
-        return vastaukset["tilausseuranta_syva"]
-    if st.session_state.last_topic == "vaihto" and any(word in kysymys for word in ["miten", "ohje", "kuinka"]):
-        return vastaukset["vaihto_syva"]
+    # --- Syvempi vastaus jos käyttäjä vastaa myönteisesti ---
+    if st.session_state.last_topic and any(word in kysymys for word in myonteiset):
+        if st.session_state.last_topic == "palautus":
+            return vastaukset["palautus_syva"]
+        if st.session_state.last_topic == "toimitus":
+            return vastaukset["toimitus_syva"]
+        if st.session_state.last_topic == "maksutavat":
+            return vastaukset["maksutavat_syva"]
+        if st.session_state.last_topic == "alennukset":
+            return vastaukset["alennukset_syva"]
+        if st.session_state.last_topic == "tilausseuranta":
+            return vastaukset["tilausseuranta_syva"]
+        if st.session_state.last_topic == "vaihto":
+            return vastaukset["vaihto_syva"]
 
     # --- Ystävälliset vastaukset ---
     if any(sana in kysymys for sana in tervehdykset):
@@ -192,9 +194,8 @@ if user_input:
     st.session_state.chat_history.append(("assistant", vastaus))
 
 # --- Chat-historia ---
-for sender, msg in st.session_state.chat_history[-50:]:  # Näytetään max 50 viestiä
+for sender, msg in st.session_state.chat_history[-50:]:
     st.chat_message(sender).write(msg)
-
 
 
 
