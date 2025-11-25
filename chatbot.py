@@ -98,17 +98,7 @@ def get_vastaus(kysymys: str) -> str:
     kysymys = kysymys.lower()
 
     # --- Lopetus ensin ---
-    if "lopeta" in kysymys:
-        st.session_state.awaiting_confirmation = False
-        st.session_state.last_topic = None
-        return "Näkemiin! 👋 Toivottavasti olin avuksi. Mukavaa päivänjatkoa! 😊"
-
         if "näkemiin" in kysymys:
-        st.session_state.awaiting_confirmation = False
-        st.session_state.last_topic = None
-        return "Näkemiin! 👋 Toivottavasti olin avuksi. Mukavaa päivänjatkoa! 😊"
-
-        if "kuulemiin" in kysymys:
         st.session_state.awaiting_confirmation = False
         st.session_state.last_topic = None
         return "Näkemiin! 👋 Toivottavasti olin avuksi. Mukavaa päivänjatkoa! 😊"
@@ -193,6 +183,7 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
 
 
 
