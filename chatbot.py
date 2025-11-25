@@ -20,8 +20,18 @@ if "chat_history" not in st.session_state:
 if "odottaa_aspa_vastausta" not in st.session_state:
     st.session_state.odottaa_aspa_vastausta = False
 
-# Käyttäjän syöte
-user_input = st.text_input("Kirjoita viesti:")
+# --- PIILOTETAAN TEKSTIKENTÄN PUNAINEN BORDER ---
+st.markdown("""
+    <style>
+        div[data-baseweb="input"] > div {
+            border-color: transparent !important;
+            box-shadow: none !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- KÄYTTÄJÄN SYYTTE ---
+user_input = st.text_input("Kirjoita viesti:", key="input")
 
 # Perusvastaukset
 vastaukset = {
@@ -37,17 +47,21 @@ asiakaspalvelu_tiedot = (
     "🕑 Aukioloajat: ma–pe klo 9–17"
 )
 
-# --- LOGIIKKA ---
+# --- CHATBOTIN LOGIIKKA ---
 if user_input:
     kysymys = user_input.lower().strip()
     st.session_state.chat_history.append(("user", user_input))
 
-    # Jos botti odottaa vastausta kyllä/ei asiakaspalveluun
+    # Tyhjennetään input-boksi
+    st.session_state.input = ""
+
+    # Jos botti odottaa vastausta asiakaspalvelu-kysymykseen
     if st.session_state.odottaa_aspa_vastausta:
         if any(word in kysymys for word in ["kyllä", "joo", "yes", "ok"]):
             vastaus = asiakaspalvelu_tiedot
         else:
             vastaus = "Selvä! Voit kysyä minulta lisää, jos tarvitset apua."
+
         st.session_state.odottaa_aspa_vastausta = False
         st.session_state.chat_history.append(("assistant", vastaus))
 
@@ -56,7 +70,7 @@ if user_input:
         if kysymys == "lopeta":
             vastaus = "Näkemiin! Toivottavasti olin avuksi."
 
-        # Näytä tuotteet, mutta vain selkeissä pyynnöissä
+        # Näytä tuotteet vain selkeissä pyynnöissä
         elif kysymys.startswith("tuotteet") or ("näytä" in kysymys and "tuotteet" in kysymys):
             lista = "\n".join([f"- {t['nimi']} ({t['kategoria']})" for t in tuotteet])
             vastaus = f"Tässä tuotteet:\n{lista}"
@@ -74,7 +88,7 @@ if user_input:
             vastaus = vastaukset["aukiolo"]
 
         else:
-            # Epäselvä kysymys → ehdota asiakaspalvelua
+            # Epäselvä kysymys → kysy haluaako asiakaspalvelun tiedot
             vastaus = (
                 "En valitettavasti tiedä vastausta tähän. "
                 "Haluatko, että annan asiakaspalvelun yhteystiedot?"
@@ -83,13 +97,14 @@ if user_input:
 
         st.session_state.chat_history.append(("assistant", vastaus))
 
-
 # --- CHATTINÄKYMÄ ---
 for sender, msg in st.session_state.chat_history:
     if sender == "user":
         st.chat_message("user").write(msg)
     else:
         st.chat_message("assistant").write(msg)
+
+
 
 
 
