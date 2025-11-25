@@ -30,16 +30,38 @@ if "chat_history" not in st.session_state:
 if "last_topic" not in st.session_state:
     st.session_state.last_topic = None
 if "awaiting_confirmation" not in st.session_state:
-    st.session_state.awaiting_confirmation = False  # odottaa käyttäjän vastausta "Auttoiko tämä?"
+    st.session_state.awaiting_confirmation = False
 
 # --- Vastaukset ---
 positive_replies = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
 negative_replies = ["ei", "en", "en oikein", "en halua"]
 
+# --- Yleisesti kysytyt kysymykset ja vastaukset ---
+general_faq = {
+    "toimituskulut": "Toimituskulut määräytyvät tilauksen koon ja toimitustavan mukaan. Perustoimitus Suomessa on 4,90€.",
+    "toimitusaika": "Toimitusaika Suomessa on yleensä 2–5 arkipäivää tilauksen vahvistamisesta.",
+    "seurantalinkki": "Voit seurata pakettisi sijaintia saamallasi seurantakoodilla verkkosivullamme.",
+    "palautus": "Palautus onnistuu 30 päivän sisällä ostopäivästä. Täytä palautuslomake tililläsi, pakkaa tuote ja lähetä takaisin.",
+    "vaihto": "Voit vaihtaa tuotteen 30 päivän sisällä ostopäivästä. Täytä vaihtolomake ja lähetä vanha tuote takaisin.",
+    "lahjakortti": "Tarjoamme lahjakortteja, jotka ovat voimassa 12 kuukautta ostopäivästä.",
+    "asiakaspalvelu": "Asiakaspalvelumme tavoitat:\n- 📞 09 123 4567\n- 📧 support@verkkokauppa.fi\n- ⏰ ma–pe 9–17",
+    "kampanjat": "Seuraa uutiskirjettä ja some-kanavia ajankohtaisista kampanjoista ja erikoistarjouksista.",
+    "varasto": "Voit tarkistaa tuotteen saatavuuden tuotesivulta. Päivitämme varastosaldon reaaliajassa.",
+    "maksutavat": "Hyväksymme maksutavat: kortti, PayPal ja Klarna. Maksu on turvallinen ja varmennettu.",
+    "takuuaika": "Tuotteilla on 12 kuukauden takuu ostopäivästä, ellei tuotekohtaisesti toisin mainita.",
+    "tilauksen_muokkaus": "Voit muokata tilaustasi 1–2 tunnin sisällä sen tekemisestä. Ota tarvittaessa yhteyttä asiakaspalveluun.",
+    "alennuskoodi": "Syötä alennuskoodi kassalla kenttään 'Koodin syöttö'. Varmista, että koodi on voimassa.",
+    "kirjautuminen": "Jos et pääse kirjautumaan, tarkista sähköposti ja salasana. Voit myös käyttää 'Unohditko salasanasi?' -linkkiä.",
+    "kansainvälinen_toimitus": "Toimitamme EU-maihin ja muualle maailmaan. Toimituskulut ja -ajat vaihtelevat maittain.",
+    "tuotetiedot": "Tuotesivuilla on saatavilla materiaalit, koot, värit ja yhteensopivuusohjeet.",
+    "tilausvahvistus": "Saat tilausvahvistuksen ja laskun sähköpostiisi heti tilauksen jälkeen."
+}
+
+# --- Funktio vastauksen hakemiseen ---
 def get_vastaus(kysymys: str) -> str:
     kysymys = kysymys.lower()
 
-    # --- Jos käyttäjä kirjoittaa uuden kysymyksen kesken vahvistuksen, aloitetaan alusta ---
+    # --- Jos käyttäjä kirjoittaa uuden kysymyksen kesken vahvistuksen ---
     if st.session_state.awaiting_confirmation:
         if not any(word in kysymys for word in positive_replies + negative_replies):
             st.session_state.awaiting_confirmation = False
@@ -47,8 +69,13 @@ def get_vastaus(kysymys: str) -> str:
 
     # --- Jos odotetaan vahvistusta ---
     if st.session_state.awaiting_confirmation:
-        if st.session_state.last_topic in ["palautus","toimitus","maksutavat","alennukset","tilausseuranta","vaihto"]:
-            if any(word in kysymys for word in positive_replies):
+        topic = st.session_state.last_topic
+        positive = any(word in kysymys for word in positive_replies)
+        negative = any(word in kysymys for word in negative_replies)
+
+        predefined_topics = ["palautus","toimitus","maksutavat","alennukset","tilausseuranta","vaihto"]
+        if topic in predefined_topics:
+            if positive:
                 st.session_state.awaiting_confirmation = False
                 st.session_state.last_topic = None
                 return {
@@ -58,8 +85,8 @@ def get_vastaus(kysymys: str) -> str:
                     "alennukset": "Mahtavaa! 😄 Tässä lisää tietoa kampanjoista:\n- Erikoistarjoukset voimassa rajoitetun ajan\n- Käytä kampanjakoodeja kassalla\n- Seuraa uutiskirjettä ja some-kanavia lisätarjouksista",
                     "tilausseuranta": "Hienoa! 😊 Nyt voit seurata tilaustasi helposti tililläsi.",
                     "vaihto": "Mahtavaa! 😄 Vaihto onnistui näin helposti!"
-                }[st.session_state.last_topic]
-            elif any(word in kysymys for word in negative_replies):
+                }.get(topic, "Hups! Tapahtui virhe, yritä uudelleen.")
+            elif negative:
                 st.session_state.awaiting_confirmation = False
                 st.session_state.last_topic = None
                 return (
@@ -68,20 +95,10 @@ def get_vastaus(kysymys: str) -> str:
                     "- 📧 Sähköposti: support@verkkokauppa.fi\n"
                     "- ⏰ Aukiolo: ma–pe 9–17"
                 )
-        elif st.session_state.last_topic == "tuki_kysymys":
-            if any(word in kysymys for word in positive_replies):
-                st.session_state.awaiting_confirmation = False
-                st.session_state.last_topic = None
-                return (
-                    "Tässä asiakaspalvelumme tiedot:\n"
-                    "- 📞 Puhelin: 09 123 4567\n"
-                    "- 📧 Sähköposti: support@verkkokauppa.fi\n"
-                    "- ⏰ Aukiolo: ma–pe 9–17"
-                )
-            elif any(word in kysymys for word in negative_replies):
-                st.session_state.awaiting_confirmation = False
-                st.session_state.last_topic = None
-                return "Selvä! 😊 Jos tarvitset apua myöhemmin, kysy vain."
+        elif topic == "tuki_kysymys":
+            st.session_state.awaiting_confirmation = False
+            st.session_state.last_topic = None
+            return general_faq["asiakaspalvelu"]
 
     # --- Ystävälliset vastaukset ---
     tervehdykset = ["miten menee", "haloo", "moro", "hei", "moi", "terve", "hello", "päivää"]
@@ -114,108 +131,47 @@ def get_vastaus(kysymys: str) -> str:
         )
         return f"Tässä meidän tuotteet:\n{lista}"
 
-    # --- Syvät vastaukset ---
-    vastaukset = {
-        "palautus_syva": (
-            "Palautus tapahtuu näin:\n"
-            "1. Täytä palautuslomake tililläsi.\n"
-            "2. Pakkaa tuote alkuperäiseen pakkaukseen.\n"
-            "3. Lähetä paketti takaisin osoitteeseen, joka löytyy palautuslomakkeesta.\n"
-            "4. Kun palautus on vastaanotettu, rahat palautetaan alkuperäiselle maksutavalle."
-        ),
-        "toimitus_syva": (
-            "Toimituksen voit seurata näin:\n"
-            "1. Saat seurantakoodin sähköpostilla.\n"
-            "2. Pakkaukset toimitetaan valitulla kuljetustavalla.\n"
-            "3. Jos toimitus viivästyy, ota yhteyttä asiakaspalveluun."
-        ),
-        "maksutavat_syva": (
-            "Maksaminen tapahtuu näin:\n"
-            "1. Valitse maksutapa kassalla.\n"
-            "2. Syötä korttitiedot tai kirjaudu PayPaliin.\n"
-            "3. Maksu on turvallinen ja varmennettu.\n"
-            "4. Saat vahvistuksen sähköpostiisi."
-        ),
-        "alennukset_syva": (
-            "Alennukset ja kampanjat:\n"
-            "- Uutiskirjeen tilaajat saavat kampanjakoodeja.\n"
-            "- Sesonkialennukset ja tarjouskampanjat vaihtelevat.\n"
-            "- Tarkista ajankohtaiset tarjoukset verkkosivuiltamme."
-        ),
-        "tilausseuranta_syva": (
-            "Tilausseuranta:\n"
-            "1. Kirjaudu tilillesi.\n"
-            "2. Valitse 'Omat tilaukset'.\n"
-            "3. Näet tilausten tilan ja seurantakoodit.\n"
-            "4. Saat myös ilmoituksia sähköpostiisi."
-        ),
-        "vaihto_syva": (
-            "Vaihto tapahtuu näin:\n"
-            "1. Täytä vaihtolomake tililläsi.\n"
-            "2. Pakkaa tuote alkuperäiseen pakkaukseen.\n"
-            "3. Lähetä paketti vaihtoon.\n"
-            "4. Saat uuden tuotteen, kun vanha on vastaanotettu."
-        ),
-        "säännöt_syva": (
-            "Verkkokaupan säännöt:\n"
-            "- Tuotteiden palautus ja vaihto 30 päivän sisällä.\n"
-            "- Asiakastuki ma–pe 9–17.\n"
-            "- Maksutavat: kortti, PayPal, Klarna.\n"
-            "- Tarjoukset ja alennukset vaihtelevat sesongin mukaan."
-        ),
-        "tuki_syva": (
-            "Tässä asiakaspalvelumme tiedot:\n"
-            "- 📞 Puhelin: 09 123 4567\n"
-            "- 📧 Sähköposti: support@verkkokauppa.fi\n"
-            "- ⏰ Aukiolo: ma–pe 9–17"
-        )
+    # --- FAQ-avainsanat ---
+    faq_keywords = {
+        "palaut": "palautus",
+        "palauta": "palautus",
+        "toimit": "toimituskulut",
+        "kuljet": "toimituskulut",
+        "paket": "toimituskulut",
+        "maksu": "maksutavat",
+        "kortti": "maksutavat",
+        "paypal": "maksutavat",
+        "klarna": "maksutavat",
+        "alenn": "kampanjat",
+        "kampanj": "kampanjat",
+        "kampanjo": "kampanjat",
+        "tarjou": "kampanjat",
+        "tilausseuranta": "seurantalinkki",
+        "seuranta": "seurantalinkki",
+        "vaihto": "vaihto",
+        "vaihda": "vaihto",
+        "lahja": "lahjakortti",
+        "lahjakortti": "lahjakortti",
+        "asiakas": "asiakaspalvelu",
+        "tuki": "asiakaspalvelu",
+        "yhteys": "asiakaspalvelu",
+        "toimitusaika": "toimitusaika",
+        "taku": "takuuaika",
+        "muokkaus": "tilauksen_muokkaus",
+        "peruuta": "tilauksen_muokkaus",
+        "koodi": "alennuskoodi",
+        "kirjaudu": "kirjautuminen",
+        "valuutta": "kansainvälinen_toimitus",
+        "tuotetiedot": "tuotetiedot",
+        "lasku": "tilausvahvistus",
+        "kuitti": "tilausvahvistus"
     }
 
-    # --- Pehmeä avainsanahaku ja syvä vastaus ---
-    if any(word in kysymys for word in ["palaut", "palauta", "palautus"]):
-        st.session_state.last_topic = "palautus"
-        st.session_state.awaiting_confirmation = True
-        return vastaukset["palautus_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-
-    if any(word in kysymys for word in ["toimit", "kuljet", "paket"]):
-        st.session_state.last_topic = "toimitus"
-        st.session_state.awaiting_confirmation = True
-        return vastaukset["toimitus_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-
-    if any(word in kysymys for word in ["maksu", "kortti", "paypal", "klarna"]):
-        st.session_state.last_topic = "maksutavat"
-        st.session_state.awaiting_confirmation = True
-        return vastaukset["maksutavat_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-
-    if any(word in kysymys for word in ["alenn", "kampanj", "kampanjo", "tarjou"]):
-        st.session_state.last_topic = "alennukset"
-        st.session_state.awaiting_confirmation = True
-        return vastaukset["alennukset_syva"] + "\n\nHaluatko tietää vielä enemmän alennuksista ja kampanjoista? 😊"
-
-    if any(word in kysymys for word in ["tilausseuranta", "seuranta"]):
-        st.session_state.last_topic = "tilausseuranta"
-        st.session_state.awaiting_confirmation = True
-        return vastaukset["tilausseuranta_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-
-    if any(word in kysymys for word in ["vaihto", "vaihda"]):
-        st.session_state.last_topic = "vaihto"
-        st.session_state.awaiting_confirmation = True
-        return vastaukset["vaihto_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-
-    if any(word in kysymys for word in ["säännöt", "ehdot", "käytännöt"]):
-        st.session_state.last_topic = "säännöt"
-        st.session_state.awaiting_confirmation = False
-        return vastaukset["säännöt_syva"]
-
-    # --- Yksinkertaiset vastaukset ---
-    if "auki" in kysymys or "ajat" in kysymys:
-        return "Asiakaspalvelumme on auki ma–pe klo 9–17."
-    if "lahjakortti" in kysymys or "lahja" in kysymys:
-        return "Tarjoamme lahjakortteja, jotka ovat voimassa 12 kuukautta ostopäivästä."
-    if "tuki" in kysymys or "yhteys" in kysymys:
-        st.session_state.last_topic = None
-        st.session_state.awaiting_confirmation = False
-        return vastaukset["tuki_syva"]
+    for key, topic in faq_keywords.items():
+        if key in kysymys:
+            st.session_state.last_topic = topic
+            st.session_state.awaiting_confirmation = True
+            return general_faq.get(topic, "Valitettavasti en löytänyt tietoa tästä aiheesta.") + "\n\nAuttoiko tämä sinua? 😊"
 
     # --- Fallback ---
     st.session_state.last_topic = "tuki_kysymys"
@@ -224,13 +180,13 @@ def get_vastaus(kysymys: str) -> str:
         "Hmm… en ole varma mitä tarkoitit 🤔\n"
         "Ehkä haluat tietoa jostakin seuraavista:\n"
         "- Palautus- ja vaihto-ohjeet\n"
-        "- Toimitusaika\n"
+        "- Toimituskulut ja toimitusaika\n"
         "- Maksutavat\n"
         "- Alennukset ja kampanjat\n"
         "- Tilausseuranta\n"
         "- Aukioloajat\n"
         "- Lahjakortit\n"
-        "- Asiakastuki\n"
+        "- Asiakaspalvelu\n"
         "\nHaluatko, että annan asiakaspalvelun yhteystiedot? 😊"
     )
 
