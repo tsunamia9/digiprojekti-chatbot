@@ -84,9 +84,9 @@ def get_vastaus(kysymys: str) -> str:
                 return "Selvä! 😊 Jos tarvitset apua myöhemmin, kysy vain."
 
     # --- Ystävälliset vastaukset ---
-    tervehdykset = ["hei", "moi", "terve", "hello", "päivää"]
+    tervehdykset = ["miten menee", "haloo", "moro", "hei", "moi", "terve", "hello", "päivää"]
     kiitokset = ["kiitos", "thx", "thanks", "kiitti"]
-    kehumiset = ["hyvä", "kiva", "mahtava", "paras", "super"]
+    kehumiset = ["hienoa", "hyvä", "kiva", "mahtava", "paras", "super"]
 
     if any(sana in kysymys for sana in tervehdykset):
         return random.choice([
@@ -258,6 +258,7 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
 
 
 
