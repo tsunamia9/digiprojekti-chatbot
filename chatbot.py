@@ -216,7 +216,3 @@ with chat_container.container():
         st.chat_message(sender).write(msg)
 
 
-
-
-
-
