@@ -29,7 +29,7 @@ st.write("Hei! Olen verkkokaupan chatbot. Kuinka voin auttaa?")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Käyttäjän syöte (lisätty key)
+# Käyttäjän syöte (key=input)
 user_input = st.text_input("Kirjoita viesti:", key="input")
 
 # Perusvastaukset
@@ -44,13 +44,15 @@ tervehdykset = ["hei", "moi", "terve", "hello", "päivää"]
 kiitokset = ["kiitos", "thx", "thanks", "kiitti"]
 kehumiset = ["hyvä", "kiva", "mahtava", "paras", "super"]
 
+
 # --- LOGIIKKA ---
 if user_input:
     kysymys = user_input.lower()
     st.session_state.chat_history.append(("user", user_input))
 
-    # Tyhjennetään syöttökenttä heti kun viesti on lähetetty
-    st.session_state.input = ""
+    # ✨ Tyhjennetään kenttä turvallisesti
+    st.session_state["input"] = ""
+    st.rerun()
 
     # 1) Tervehdys
     if any(sana in kysymys for sana in tervehdykset):
@@ -68,7 +70,7 @@ if user_input:
     elif kysymys == "lopeta":
         vastaus = "Näkemiin! Toivottavasti olin avuksi 😊"
 
-    # 5) Tuotelistaus (korjattu ettei reagoi palautus-lauseisiin)
+    # 5) Tuotelistaus
     elif kysymys.strip() == "tuotteet" or "näytä tuotte" in kysymys:
         lista = "\n".join([f"- {t['nimi']} ({t['kategoria']})" for t in tuotteet])
         vastaus = f"Tässä meidän tuotteet:\n{lista}"
@@ -77,9 +79,7 @@ if user_input:
     elif "palaut" in kysymys:
         vastaus = vastaukset["palautus"]
 
-    elif ("toimit" in kysymys or 
-          "kuljet" in kysymys or 
-          "paket" in kysymys):
+    elif "toimit" in kysymys or "kuljet" in kysymys or "paket" in kysymys:
         vastaus = vastaukset["toimitus"]
 
     elif "auki" in kysymys or "ajat" in kysymys:
@@ -87,18 +87,17 @@ if user_input:
 
     else:
         vastaus = (
-            "Hmm… en ole varma miten vastata tähän 🤔\n"
+            "Hmm… en ole varma mitä tarkoitit 🤔\n"
             "Haluatko että annan asiakaspalvelun yhteystiedot?"
         )
-        st.session_state.waiting_for_yes = True
 
-    # Tallennetaan bottiviesti
     st.session_state.chat_history.append(("assistant", vastaus))
 
 
 # --- CHATTINÄKYMÄ ---
 for sender, msg in st.session_state.chat_history:
     st.chat_message(sender).write(msg)
+
 
 
 
