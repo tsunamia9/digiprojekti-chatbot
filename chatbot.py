@@ -52,7 +52,7 @@ general_faq = {
     "tuotetiedot": "Tuotesivuilla on saatavilla materiaalit, koot, värit ja yhteensopivuusohjeet.",
     "tilausvahvistus": "Saat tilausvahvistuksen ja laskun sähköpostiisi heti tilauksen jälkeen.",
     "lahjakortti": "Tarjoamme lahjakortteja, jotka ovat voimassa 12 kuukautta ostopäivästä.",
-    "asiakaspalvelu": "Asiakaspalvelumme tavoitat:\n- 📞 09 123 4567\n- 📧 support@verkkokauppa.fi\n- ⏰ ma–pe 9–17"
+    "asiakaspalvelu": "Asiakaspalvelumme tavoitat:\n- 📞 09 123 4567\n- 📧 support@verkkokauppa.fi\n- ⏰ ma–pe 9–21 ja la-su 10-17"
 }
 
 # --- FAQ-avainsanat ---
@@ -187,6 +187,7 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
 
 
 
