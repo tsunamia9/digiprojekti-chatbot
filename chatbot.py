@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import json
 import random
-import re
 
 # --- CSS: poistetaan punainen reunavalo tekstikentästä ---
 st.markdown("""
@@ -71,34 +70,34 @@ def get_vastaus(kysymys: str) -> str:
         return "Aww kiitos! 😄 Teen parhaani auttaakseni."
 
     # 4) Lopetus
-    if kysymys == "lopeta":
+    if "lopeta" in kysymys:
         return "Näkemiin! Toivottavasti olin avuksi 😊"
 
     # 5) Tuotelistaus
-    if kysymys.strip() == "tuotteet" or "näytä tuotte" in kysymys:
+    if "tuotteet" in kysymys or "näytä" in kysymys and "tuotte" in kysymys:
         lista = "\n".join(
             [f"- {t['nimi']} ({t['kategoria']}) – {t.get('hinta', 'Hinta ei saatavilla')}€" for t in tuotteet]
         )
         return f"Tässä meidän tuotteet:\n{lista}"
 
-    # --- Avainsanat ---
-    if re.search(r"\bpalaut(us)?\b", kysymys):
+    # --- Pehmeä avainsanahaku ---
+    if "palaut" in kysymys:
         return vastaukset["palautus"]
-    if re.search(r"\b(toimitus|kuljetus|paket)\b", kysymys):
+    if "toimit" in kysymys or "kuljet" in kysymys or "paket" in kysymys:
         return vastaukset["toimitus"]
-    if re.search(r"\b(auki|ajat)\b", kysymys):
+    if "auki" in kysymys or "ajat" in kysymys:
         return vastaukset["aukiolo"]
-    if re.search(r"\b(maksu|kortti|paypal|klarna)\b", kysymys):
+    if "maksu" in kysymys or "kortti" in kysymys or "paypal" in kysymys or "klarna" in kysymys:
         return vastaukset["maksutavat"]
-    if re.search(r"\b(alennus|kampanja)\b", kysymys):
+    if "alenn" in kysymys or "kampanja" in kysymys:
         return vastaukset["alennukset"]
-    if re.search(r"\b(tilausseuranta|seuranta)\b", kysymys):
+    if "tilausseuranta" in kysymys or "seuranta" in kysymys:
         return vastaukset["tilausseuranta"]
-    if re.search(r"\b(vaihto|vaihda)\b", kysymys):
+    if "vaihto" in kysymys or "vaihda" in kysymys:
         return vastaukset["vaihto"]
-    if re.search(r"\b(lahjakortti|lahja)\b", kysymys):
+    if "lahjakortti" in kysymys or "lahja" in kysymys:
         return vastaukset["lahjakortti"]
-    if re.search(r"\b(tuki|yhteys)\b", kysymys):
+    if "tuki" in kysymys or "yhteys" in kysymys:
         return vastaukset["tuki"]
 
     # --- Fallback, jos ei ymmärrä ---
@@ -131,6 +130,7 @@ if user_input:
 # --- Chat-historia ---
 for sender, msg in st.session_state.chat_history[-50:]:  # Näytetään max 50 viestiä
     st.chat_message(sender).write(msg)
+
 
 
 
