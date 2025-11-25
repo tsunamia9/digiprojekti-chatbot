@@ -97,19 +97,20 @@ faq_keywords = {
 def get_vastaus(kysymys: str) -> str:
     kysymys = kysymys.lower()
 
+    # --- Lopetus ensin ---
+    if "lopeta" in kysymys:
+        st.session_state.awaiting_confirmation = False
+        st.session_state.last_topic = None
+        return "Näkemiin! Toivottavasti olin avuksi 😊"
+
     # --- Jos odotetaan vahvistusta ---
     if st.session_state.awaiting_confirmation:
-        topic = st.session_state.last_topic
         positive = any(word in kysymys for word in positive_replies)
         negative = any(word in kysymys for word in negative_replies)
-        if topic and positive:
+        if positive or negative:
             st.session_state.awaiting_confirmation = False
             st.session_state.last_topic = None
-            return f"Hienoa! 😊 Vastaus aiheeseen '{topic.replace('_',' ')}' auttoi."
-        elif topic and negative:
-            st.session_state.awaiting_confirmation = False
-            st.session_state.last_topic = None
-            return "Voi ei! Ota tarvittaessa yhteyttä asiakaspalveluun."
+            return "Kiitos tiedosta! 😊"
 
     # --- Ystävälliset vastaukset ---
     tervehdykset = ["miten menee", "haloo", "moro", "hei", "moi", "terve", "hello", "päivää"]
@@ -131,9 +132,6 @@ def get_vastaus(kysymys: str) -> str:
     if any(sana in kysymys for sana in kehumiset):
         return "Kiitos! 😄 Teen parhaani auttaakseni."
 
-    if "lopeta" in kysymys:
-        return "Näkemiin! Toivottavasti olin avuksi 😊"
-
     # --- Tuotelistaus ---
     if "tuotteet" in kysymys or ("näytä" in kysymys and "tuotte" in kysymys):
         lista = "\n".join(
@@ -148,13 +146,12 @@ def get_vastaus(kysymys: str) -> str:
             st.session_state.awaiting_confirmation = True
             return general_faq.get(topic, "Valitettavasti en löytänyt tietoa tästä aiheesta.") + "\n\nAuttoiko tämä sinua? 😊"
 
-    # --- Fallback: käyttäjä ei osaa kysyä ---
+    # --- Fallback käyttäjälle ---
     st.session_state.last_topic = "tuki_kysymys"
     st.session_state.awaiting_confirmation = True
     return (
         "Hmm… en ole varma mitä tarkoitit 🤔\n"
-        "Jos olet epävarma, voit klikata 'Näytä kaikki aiheet', jolloin näet kaiken mitä botti pystyy käsittelemään.\n"
-        "Voit myös kysyä esimerkiksi: palautus, vaihto, toimitus, maksutavat, kampanjat, tilausseuranta, lahjakortit, asiakaspalvelu."
+        "Jos olet epävarma, voit klikata 'Näytä kaikki aiheet', jolloin näet kaiken mitä botti pystyy käsittelemään."
     )
 
 # --- Chat-container ---
@@ -186,6 +183,7 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
 
 
 
