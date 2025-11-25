@@ -40,7 +40,6 @@ if "awaiting_confirmation" not in st.session_state:
 positive_replies = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
 negative_replies = ["ei", "en", "en oikein", "en halua"]
 
-# --- Yleiset FAQ-vastaukset ---
 general_faq = {
     "palautus": "Palautus onnistuu 30 päivän sisällä ostopäivästä. Täytä palautuslomake tililläsi, pakkaa tuote ja lähetä takaisin.",
     "vaihto": "Voit vaihtaa tuotteen 30 päivän sisällä ostopäivästä. Täytä vaihtolomake ja lähetä vanha tuote takaisin.",
@@ -61,7 +60,6 @@ general_faq = {
     "asiakaspalvelu": "Asiakaspalvelumme tavoitat:\n- 📞 09 123 4567\n- 📧 support@verkkokauppa.fi\n- ⏰ ma–pe 9–17"
 }
 
-# --- FAQ-avainsanat ---
 faq_keywords = {
     "palaut": "palautus",
     "palauta": "palautus",
@@ -97,24 +95,30 @@ faq_keywords = {
     "kuitti": "tilausvahvistus"
 }
 
-# --- Funktio vastauksen hakemiseen ---
 def get_vastaus(kysymys: str) -> str:
     kysymys = kysymys.lower()
 
-    # --- Lopetus ensin ---
+    # --- Lopetus ---
     if any(word in kysymys for word in ["lopeta", "näkemiin", "hei hei"]):
         st.session_state.awaiting_confirmation = False
         st.session_state.last_topic = None
         return "Näkemiin! 👋 Toivottavasti olin avuksi. Mukavaa päivänjatkoa! 😊"
 
-    # --- Jos odotetaan vahvistusta ---
+    # --- Vahvistus ---
     if st.session_state.awaiting_confirmation:
         positive = any(word in kysymys for word in positive_replies)
         negative = any(word in kysymys for word in negative_replies)
-        if positive or negative:
-            st.session_state.awaiting_confirmation = False
-            st.session_state.last_topic = None
+        st.session_state.awaiting_confirmation = False
+        st.session_state.last_topic = None
+        if positive:
             return "Hienoa! 😄 Oli ilo auttaa sinua!"
+        elif negative:
+            return (
+                "Voi ei! 😕 Ei hätää, voit olla suoraan yhteydessä asiakaspalveluumme:\n"
+                "- 📞 09 123 4567\n"
+                "- 📧 support@verkkokauppa.fi\n"
+                "- ⏰ ma–pe 9–17"
+            )
 
     # --- Ystävälliset vastaukset ---
     tervehdykset = ["miten menee", "haloo", "moro", "hei", "moi", "terve", "hello", "päivää"]
