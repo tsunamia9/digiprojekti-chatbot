@@ -58,7 +58,6 @@ def get_vastaus(kysymys: str) -> str:
                     "- 📧 Sähköposti: support@verkkokauppa.fi\n"
                     "- ⏰ Aukiolo: ma–pe 9–17"
                 )
-        # --- Jos odotetaan asiakaspalvelun tietoja ---
         elif st.session_state.last_topic == "tuki_kysymys":
             if any(word in kysymys for word in positive_replies):
                 st.session_state.awaiting_confirmation = False
@@ -146,6 +145,13 @@ def get_vastaus(kysymys: str) -> str:
             "2. Pakkaa tuote alkuperäiseen pakkaukseen.\n"
             "3. Lähetä paketti vaihtoon.\n"
             "4. Saat uuden tuotteen, kun vanha on vastaanotettu."
+        ),
+        "säännöt_syva": (
+            "Verkkokaupan säännöt:\n"
+            "- Tuotteiden palautus ja vaihto 30 päivän sisällä.\n"
+            "- Asiakastuki ma–pe 9–17.\n"
+            "- Maksutavat: kortti, PayPal, Klarna.\n"
+            "- Tarjoukset ja alennukset vaihtelevat sesongin mukaan."
         )
     }
 
@@ -174,6 +180,10 @@ def get_vastaus(kysymys: str) -> str:
         st.session_state.last_topic = "vaihto"
         st.session_state.awaiting_confirmation = True
         return vastaukset["vaihto_syva"] + "\n\nAuttoiko tämä sinua? 😊"
+    if "säännöt" in kysymys or "ehdot" in kysymys or "käytännöt" in kysymys:
+        st.session_state.last_topic = "säännöt"
+        st.session_state.awaiting_confirmation = False
+        return vastaukset["säännöt_syva"]
 
     # --- Yksinkertaiset vastaukset ---
     if "auki" in kysymys or "ajat" in kysymys:
@@ -186,19 +196,19 @@ def get_vastaus(kysymys: str) -> str:
     # --- Fallback: tarjoa asiakaspalvelun yhteystiedot ---
     st.session_state.last_topic = "tuki_kysymys"
     st.session_state.awaiting_confirmation = True
-return (
-    "Hmm… en ole varma mitä tarkoitit 🤔\n"
-    "Ehkä haluat tietoa jostakin seuraavista:\n"
-    "- Palautus- ja vaihto-ohjeet\n"
-    "- Toimitusaika\n"
-    "- Maksutavat\n"
-    "- Alennukset ja kampanjat\n"
-    "- Tilausseuranta\n"
-    "- Aukioloajat\n"
-    "- Lahjakortit\n"
-    "- Asiakastuki\n"
-    "Haluatko, että annan asiakaspalvelun yhteystiedot? 😊"
-)
+    return (
+        "Hmm… en ole varma mitä tarkoitit 🤔\n"
+        "Ehkä haluat tietoa jostakin seuraavista:\n"
+        "- Palautus- ja vaihto-ohjeet\n"
+        "- Toimitusaika\n"
+        "- Maksutavat\n"
+        "- Alennukset ja kampanjat\n"
+        "- Tilausseuranta\n"
+        "- Aukioloajat\n"
+        "- Lahjakortit\n"
+        "- Asiakastuki\n"
+        "Haluatko, että annan asiakaspalvelun yhteystiedot? 😊"
+    )
 
 # --- Chat-container ---
 chat_container = st.empty()
