@@ -186,19 +186,19 @@ def get_vastaus(kysymys: str) -> str:
     # --- Fallback: tarjoa asiakaspalvelun yhteystiedot ---
     st.session_state.last_topic = "tuki_kysymys"
     st.session_state.awaiting_confirmation = True
-    return (
-        "Hmm… en ole varma mitä tarkoitit 🤔\n"
-        "Ehkä haluat tietoa jostakin seuraavista:\n"
-        "- Palautus- ja vaihto-ohjeet\n"
-        "- Toimitusaika\n"
-        "- Maksutavat\n"
-        "- Alennukset ja kampanjat\n"
-        "- Tilausseuranta\n"
-        "- Aukioloajat\n"
-        "- Lahjakortit\n"
-        "- Asiakastuki"   
-        "\n Haluatko, että annan asiakaspalvelun yhteystiedot? 😊"
-    )
+return (
+    "Hmm… en ole varma mitä tarkoitit 🤔\n"
+    "Ehkä haluat tietoa jostakin seuraavista:\n"
+    "- Palautus- ja vaihto-ohjeet\n"
+    "- Toimitusaika\n"
+    "- Maksutavat\n"
+    "- Alennukset ja kampanjat\n"
+    "- Tilausseuranta\n"
+    "- Aukioloajat\n"
+    "- Lahjakortit\n"
+    "- Asiakastuki\n"
+    "Haluatko, että annan asiakaspalvelun yhteystiedot? 😊"
+)
 
 # --- Chat-container ---
 chat_container = st.empty()
@@ -224,6 +224,7 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
 
 
 
