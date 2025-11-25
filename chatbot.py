@@ -32,29 +32,33 @@ if "last_topic" not in st.session_state:
 if "awaiting_confirmation" not in st.session_state:
     st.session_state.awaiting_confirmation = False  # odottaa käyttäjän vastausta "Auttoiko tämä?"
 
-# --- Vastauslogiikka ---
+# --- Vastaukset ---
 positive_replies = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
 negative_replies = ["ei", "en", "en oikein", "en halua"]
 
 def get_vastaus(kysymys: str) -> str:
     kysymys = kysymys.lower()
 
-    # --- Jos käyttäjä kirjoittaa uuden kysymyksen, vaikka vahvistus olisi kesken, nollaa odotus ---
+    # --- Jos käyttäjä kirjoittaa uuden kysymyksen kesken vahvistuksen, aloitetaan alusta ---
     if st.session_state.awaiting_confirmation:
         if not any(word in kysymys for word in positive_replies + negative_replies):
             st.session_state.awaiting_confirmation = False
             st.session_state.last_topic = None
 
-    # --- Jos odotetaan vahvistusta syvästä vastauksesta ---
+    # --- Jos odotetaan vahvistusta ---
     if st.session_state.awaiting_confirmation:
         if st.session_state.last_topic in ["palautus","toimitus","maksutavat","alennukset","tilausseuranta","vaihto"]:
             if any(word in kysymys for word in positive_replies):
                 st.session_state.awaiting_confirmation = False
                 st.session_state.last_topic = None
-                return random.choice([
-                    "Hienoa! 😊 Ilo kuulla, että pystyin auttamaan!",
-                    "Mahtavaa! 😄 Kiva että ohje auttoi!"
-                ])
+                return {
+                    "palautus": "Hienoa! 😊 Ilo kuulla, että pystyin auttamaan palautuksessa!",
+                    "toimitus": "Mahtavaa! 😄 Kiva että toimitusohjeet auttoivat!",
+                    "maksutavat": "Hienoa! 😊 Maksutavat selkeät?",
+                    "alennukset": "Mahtavaa! 😄 Tässä lisää tietoa kampanjoista:\n- Erikoistarjoukset voimassa rajoitetun ajan\n- Käytä kampanjakoodeja kassalla\n- Seuraa uutiskirjettä ja some-kanavia lisätarjouksista",
+                    "tilausseuranta": "Hienoa! 😊 Nyt voit seurata tilaustasi helposti tililläsi.",
+                    "vaihto": "Mahtavaa! 😄 Vaihto onnistui näin helposti!"
+                }[st.session_state.last_topic]
             elif any(word in kysymys for word in negative_replies):
                 st.session_state.awaiting_confirmation = False
                 st.session_state.last_topic = None
@@ -97,7 +101,7 @@ def get_vastaus(kysymys: str) -> str:
             "Aina ilo auttaa!"
         ])
     if any(sana in kysymys for sana in kehumiset):
-        return "Aww kiitos! 😄 Teen parhaani auttaakseni."
+        return "Kiitos! 😄 Teen parhaani auttaakseni."
 
     # --- Lopetus ---
     if "lopeta" in kysymys:
@@ -133,7 +137,7 @@ def get_vastaus(kysymys: str) -> str:
             "4. Saat vahvistuksen sähköpostiisi."
         ),
         "alennukset_syva": (
-            "Alennukset:\n"
+            "Alennukset ja kampanjat:\n"
             "- Uutiskirjeen tilaajat saavat kampanjakoodeja.\n"
             "- Sesonkialennukset ja tarjouskampanjat vaihtelevat.\n"
             "- Tarkista ajankohtaiset tarjoukset verkkosivuiltamme."
@@ -168,31 +172,37 @@ def get_vastaus(kysymys: str) -> str:
     }
 
     # --- Pehmeä avainsanahaku ja syvä vastaus ---
-    if "palaut" in kysymys:
+    if any(word in kysymys for word in ["palaut", "palauta", "palautus"]):
         st.session_state.last_topic = "palautus"
         st.session_state.awaiting_confirmation = True
         return vastaukset["palautus_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-    if "toimit" in kysymys or "kuljet" in kysymys or "paket" in kysymys:
+
+    if any(word in kysymys for word in ["toimit", "kuljet", "paket"]):
         st.session_state.last_topic = "toimitus"
         st.session_state.awaiting_confirmation = True
         return vastaukset["toimitus_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-    if "maksu" in kysymys or "kortti" in kysymys or "paypal" in kysymys or "klarna" in kysymys:
+
+    if any(word in kysymys for word in ["maksu", "kortti", "paypal", "klarna"]):
         st.session_state.last_topic = "maksutavat"
         st.session_state.awaiting_confirmation = True
         return vastaukset["maksutavat_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-    if "alenn" in kysymys or "kampanja" in kysymys:
+
+    if any(word in kysymys for word in ["alenn", "kampanj", "kampanjo", "tarjou"]):
         st.session_state.last_topic = "alennukset"
         st.session_state.awaiting_confirmation = True
-        return vastaukset["alennukset_syva"] + "\n\nHaluatko tietää vielä enemmän alennuksista? 😊"
-    if "tilausseuranta" in kysymys or "seuranta" in kysymys:
+        return vastaukset["alennukset_syva"] + "\n\nHaluatko tietää vielä enemmän alennuksista ja kampanjoista? 😊"
+
+    if any(word in kysymys for word in ["tilausseuranta", "seuranta"]):
         st.session_state.last_topic = "tilausseuranta"
         st.session_state.awaiting_confirmation = True
         return vastaukset["tilausseuranta_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-    if "vaihto" in kysymys or "vaihda" in kysymys:
+
+    if any(word in kysymys for word in ["vaihto", "vaihda"]):
         st.session_state.last_topic = "vaihto"
         st.session_state.awaiting_confirmation = True
         return vastaukset["vaihto_syva"] + "\n\nAuttoiko tämä sinua? 😊"
-    if "säännöt" in kysymys or "ehdot" in kysymys or "käytännöt" in kysymys:
+
+    if any(word in kysymys for word in ["säännöt", "ehdot", "käytännöt"]):
         st.session_state.last_topic = "säännöt"
         st.session_state.awaiting_confirmation = False
         return vastaukset["säännöt_syva"]
@@ -207,7 +217,7 @@ def get_vastaus(kysymys: str) -> str:
         st.session_state.awaiting_confirmation = False
         return vastaukset["tuki_syva"]
 
-    # --- Fallback: tarjoa asiakaspalvelun yhteystiedot ---
+    # --- Fallback ---
     st.session_state.last_topic = "tuki_kysymys"
     st.session_state.awaiting_confirmation = True
     return (
