@@ -199,9 +199,8 @@ def get_vastaus(kysymys: str) -> str:
         "- Tilausseuranta\n"
         "- Aukioloajat\n"
         "- Lahjakortit\n"
-        "- Asiakastuki"
-        
-        "- Haluatko, että annan asiakaspalvelun yhteystiedot? 😊"
+        "- Asiakastuki"   
+        "\n Haluatko, että annan asiakaspalvelun yhteystiedot? 😊"
     )
 
 # --- Chat-container ---
@@ -228,6 +227,7 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
 
 
 
