@@ -53,13 +53,10 @@ def get_vastaus(kysymys: str) -> str:
                 st.session_state.awaiting_confirmation = False
                 st.session_state.last_topic = None
                 return (
-                    "Voi ei! Yritetään uudelleen tai voit olla suoraan yhteydessä asiakaspalveluumme:\n"
-                    "Tässä asiakaspalvelumme tiedot:\n"
+                    "Voi ei! Voit olla suoraan yhteydessä asiakaspalveluumme, jotta saat tarkempaa apua:\n"
                     "- 📞 Puhelin: 09 123 4567\n"
                     "- 📧 Sähköposti: support@verkkokauppa.fi\n"
                     "- ⏰ Aukiolo: ma–pe 9–17"
-                    "Voit myös ottaa yhteyttä asiakaspalveluumme support@verkkokauppa.fi, "
-                    "jos tarvitset tarkempaa apua."
                 )
         # --- Jos odotetaan asiakaspalvelun tietoja ---
         elif st.session_state.last_topic == "tuki_kysymys":
@@ -227,6 +224,7 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
 
 
 
