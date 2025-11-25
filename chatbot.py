@@ -28,8 +28,12 @@ st.write("Hei! Olen verkkokaupan chatbot. Kuinka voin auttaa?")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Käyttäjän syöte (key=input)
-user_input = st.text_input("Kirjoita viesti:", value="", key="input")
+# Väliaikainen muuttuja syötteelle
+if "temp_input" not in st.session_state:
+    st.session_state.temp_input = ""
+
+# Käyttäjän syöte
+user_input = st.text_input("Kirjoita viesti:", value=st.session_state.temp_input, key="input")
 
 # Perusvastaukset
 vastaukset = {
@@ -38,7 +42,6 @@ vastaukset = {
     "aukiolo": "Asiakaspalvelumme on auki ma–pe klo 9–17."
 }
 
-# Ystävälliset vastausmallit
 tervehdykset = ["hei", "moi", "terve", "hello", "päivää"]
 kiitokset = ["kiitos", "thx", "thanks", "kiitti"]
 kehumiset = ["hyvä", "kiva", "mahtava", "paras", "super"]
@@ -48,37 +51,24 @@ if user_input:
     kysymys = user_input.lower()
     st.session_state.chat_history.append(("user", user_input))
 
-    # 1) Tervehdys
+    # --- Vastauslogiikka ---
     if any(sana in kysymys for sana in tervehdykset):
         vastaus = "Hei! 😊 Miten voin auttaa sinua tänään?"
-
-    # 2) Kiitos
     elif any(sana in kysymys for sana in kiitokset):
         vastaus = "Ole hyvä! 💙 Kiva että pystyin auttamaan."
-
-    # 3) Kehuminen
     elif any(sana in kysymys for sana in kehumiset):
         vastaus = "Aww kiitos! 😄 Teen parhaani auttaakseni."
-
-    # 4) Lopetus
     elif kysymys == "lopeta":
         vastaus = "Näkemiin! Toivottavasti olin avuksi 😊"
-
-    # 5) Tuotelistaus
     elif kysymys.strip() == "tuotteet" or "näytä tuotte" in kysymys:
         lista = "\n".join([f"- {t['nimi']} ({t['kategoria']})" for t in tuotteet])
         vastaus = f"Tässä meidän tuotteet:\n{lista}"
-
-    # --- AVAINSANAEHTOJA ---
     elif "palaut" in kysymys:
         vastaus = vastaukset["palautus"]
-
     elif "toimit" in kysymys or "kuljet" in kysymys or "paket" in kysymys:
         vastaus = vastaukset["toimitus"]
-
     elif "auki" in kysymys or "ajat" in kysymys:
         vastaus = vastaukset["aukiolo"]
-
     else:
         vastaus = (
             "Hmm… en ole varma mitä tarkoitit 🤔\n"
@@ -87,9 +77,14 @@ if user_input:
 
     st.session_state.chat_history.append(("assistant", vastaus))
 
+    # Tyhjennetään tekstikenttä turvallisesti
+    st.session_state.temp_input = ""
+    st.experimental_rerun()
+
 # --- CHATTINÄKYMÄ ---
 for sender, msg in st.session_state.chat_history:
     st.chat_message(sender).write(msg)
+
 
 
 
