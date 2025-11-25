@@ -152,6 +152,12 @@ def get_vastaus(kysymys: str) -> str:
             "- Asiakastuki ma–pe 9–17.\n"
             "- Maksutavat: kortti, PayPal, Klarna.\n"
             "- Tarjoukset ja alennukset vaihtelevat sesongin mukaan."
+        ),
+        "tuki_syva": (
+            "Tässä asiakaspalvelumme tiedot:\n"
+            "- 📞 Puhelin: 09 123 4567\n"
+            "- 📧 Sähköposti: support@verkkokauppa.fi\n"
+            "- ⏰ Aukiolo: ma–pe 9–17"
         )
     }
 
@@ -191,7 +197,9 @@ def get_vastaus(kysymys: str) -> str:
     if "lahjakortti" in kysymys or "lahja" in kysymys:
         return "Tarjoamme lahjakortteja, jotka ovat voimassa 12 kuukautta ostopäivästä."
     if "tuki" in kysymys or "yhteys" in kysymys:
-        return "Voit ottaa yhteyttä asiakaspalveluumme sähköpostitse support@verkkokauppa.fi."
+        st.session_state.last_topic = None
+        st.session_state.awaiting_confirmation = False
+        return vastaukset["tuki_syva"]
 
     # --- Fallback: tarjoa asiakaspalvelun yhteystiedot ---
     st.session_state.last_topic = "tuki_kysymys"
@@ -207,7 +215,7 @@ def get_vastaus(kysymys: str) -> str:
         "- Aukioloajat\n"
         "- Lahjakortit\n"
         "- Asiakastuki\n"
-        "Haluatko, että annan asiakaspalvelun yhteystiedot? 😊"
+        "\nHaluatko, että annan asiakaspalvelun yhteystiedot? 😊"
     )
 
 # --- Chat-container ---
