@@ -38,7 +38,13 @@ negative_replies = ["ei", "en", "en oikein", "en halua"]
 
 def get_vastaus(kysymys: str) -> str:
     kysymys = kysymys.lower()
-    
+
+    # --- Jos käyttäjä kirjoittaa uuden kysymyksen, vaikka vahvistus olisi kesken, nollaa odotus ---
+    if st.session_state.awaiting_confirmation:
+        if not any(word in kysymys for word in positive_replies + negative_replies):
+            st.session_state.awaiting_confirmation = False
+            st.session_state.last_topic = None
+
     # --- Jos odotetaan vahvistusta syvästä vastauksesta ---
     if st.session_state.awaiting_confirmation:
         if st.session_state.last_topic in ["palautus","toimitus","maksutavat","alennukset","tilausseuranta","vaihto"]:
@@ -242,8 +248,6 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
-
-
 
 
 
