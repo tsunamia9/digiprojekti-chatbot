@@ -26,27 +26,36 @@ vastaukset = {
     "aukiolo": "Asiakaspalvelumme on auki ma–pe klo 9–17."
 }
 
+# --- LOGIIKKA ---
+
 if user_input:
     kysymys = user_input.lower()
-    
+    st.session_state.chat_history.append(("user", user_input))
+
     if kysymys == "lopeta":
-        vastaus = "Botti: Näkemiin! Toivottavasti olin avuksi."
-        st.session_state.chat_history.append(("Sinä", user_input))
-        st.session_state.chat_history.append(("Botti", vastaus))
-        
+        vastaus = "Näkemiin! Toivottavasti olin avuksi."
+    
     elif kysymys == "tuotteet":
         lista = "\n".join([f"- {t['nimi']} ({t['kategoria']})" for t in tuotteet])
-        vastaus = f"Botti: Meiltä löytyy seuraavat tuotteet:\n{lista}"
-        st.session_state.chat_history.append(("Sinä", user_input))
-        st.session_state.chat_history.append(("Botti", vastaus))
-        
-    else:
-        vastaus = vastaukset.get(kysymys, "Botti: Valitettavasti en tiedä siitä. Kysy jotain muuta verkkokauppaan liittyvää.")
-        st.session_state.chat_history.append(("Sinä", user_input))
-        st.session_state.chat_history.append(("Botti", vastaus))
+        vastaus = f"Meiltä löytyy seuraavat tuotteet:\n{lista}"
 
-# Näytetään keskusteluhistoria
+    else:
+        vastaus = vastaukset.get(
+            kysymys,
+            "Valitettavasti en tiedä siitä. Kysy jotain muuta verkkokauppaan liittyvää."
+        )
+
+    st.session_state.chat_history.append(("assistant", vastaus))
+
+
+# --- NÄYTETÄÄN KESKUSTELU CHATILLÄ ---
+
 for sender, msg in st.session_state.chat_history:
-    st.write(f"**{sender}:** {msg}")
+    if sender == "user":
+        st.chat_message("user").write(msg)
+    else:
+        st.chat_message("assistant").write(msg)
+
+
 
 
