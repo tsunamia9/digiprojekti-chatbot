@@ -40,18 +40,27 @@ if "awaiting_confirmation" not in st.session_state:
 positive_replies = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
 negative_replies = ["ei", "en", "en oikein", "en halua"]
 
+# --- Yleiset FAQ-vastaukset ---
 general_faq = {
     "palautus": "Palautus onnistuu 30 päivän sisällä ostopäivästä. Täytä palautuslomake tililläsi, pakkaa tuote ja lähetä takaisin.",
+    "palautus_lisä": "Varmista, että tuote on alkuperäisessä kunnossa ja kaikki lisävarusteet mukana. Tarvittaessa voit tulostaa palautuslomakkeen verkkosivuiltamme uudelleen.",
     "vaihto": "Voit vaihtaa tuotteen 30 päivän sisällä ostopäivästä. Täytä vaihtolomake ja lähetä vanha tuote takaisin.",
+    "vaihto_lisä": "Huomioi, että uusi tuote lähetetään heti kun vanha tuote on vastaanotettu. Jos haluat nopeamman toimituksen, ota yhteys asiakaspalveluun.",
     "toimituskulut": "Toimituskulut määräytyvät tilauksen koon ja toimitustavan mukaan. Perustoimitus Suomessa on 4,90€.",
+    "toimituskulut_lisä": "Jos tilaat useamman tuotteen, saatamme yhdistää toimitukset. Express-toimitus on mahdollinen lisämaksusta.",
     "toimitusaika": "Toimitusaika Suomessa on yleensä 2–5 arkipäivää tilauksen vahvistamisesta.",
+    "toimitusaika_lisä": "Viivästyksen sattuessa saat seurantakoodilla tarkemmat tiedot toimituksesta.",
     "seurantalinkki": "Voit seurata pakettisi sijaintia saamallasi seurantakoodilla verkkosivullamme.",
     "maksutavat": "Hyväksymme maksutavat: kortti, PayPal ja Klarna. Maksu on turvallinen ja varmennettu.",
+    "maksutavat_lisä": "Korttimaksu tapahtuu salatulla yhteydellä, PayPal ja Klarna varmistavat maksun turvallisuuden.",
     "kampanjat": "Seuraa uutiskirjettä ja some-kanavia ajankohtaisista kampanjoista ja erikoistarjouksista.",
+    "kampanjat_lisä": "Lisäksi jotkut tuotteet sisältävät automaattisesti alennuksia kassalla. Tarkista tuotteen sivulta voimassa olevat kampanjat.",
     "varasto": "Voit tarkistaa tuotteen saatavuuden tuotesivulta. Päivitämme varastosaldon reaaliajassa.",
     "takuuaika": "Tuotteilla on 12 kuukauden takuu ostopäivästä, ellei tuotekohtaisesti toisin mainita.",
     "tilauksen_muokkaus": "Voit muokata tilaustasi 1–2 tunnin sisällä sen tekemisestä. Ota tarvittaessa yhteyttä asiakaspalveluun.",
+    "tilauksen_muokkaus_lisä": "Muokkaus sisältää osoitteen, toimitustavan ja lisätilaukset. Tilauksen peruuttaminen onnistuu vain 2 tunnin sisällä.",
     "alennuskoodi": "Syötä alennuskoodi kassalla kenttään 'Koodin syöttö'. Varmista, että koodi on voimassa.",
+    "alennuskoodi_lisä": "Jos koodi ei toimi, tarkista voimassaoloaika tai ota yhteyttä asiakaspalveluun.",
     "kirjautuminen": "Jos et pääse kirjautumaan, tarkista sähköposti ja salasana. Voit myös käyttää 'Unohditko salasanasi?' -linkkiä.",
     "kansainvälinen_toimitus": "Toimitamme EU-maihin ja muualle maailmaan. Toimituskulut ja -ajat vaihtelevat maittain.",
     "tuotetiedot": "Tuotesivuilla on saatavilla materiaalit, koot, värit ja yhteensopivuusohjeet.",
@@ -108,17 +117,23 @@ def get_vastaus(kysymys: str) -> str:
     if st.session_state.awaiting_confirmation:
         positive = any(word in kysymys for word in positive_replies)
         negative = any(word in kysymys for word in negative_replies)
+        last_topic = st.session_state.last_topic
         st.session_state.awaiting_confirmation = False
-        st.session_state.last_topic = None
+
         if positive:
+            st.session_state.last_topic = None
             return "Hienoa! 😄 Oli ilo auttaa sinua!"
         elif negative:
-            return (
-                "Voi ei! 😕 Ei hätää, voit olla suoraan yhteydessä asiakaspalveluumme:\n"
-                "- 📞 09 123 4567\n"
-                "- 📧 support@verkkokauppa.fi\n"
-                "- ⏰ ma–pe 9–17"
-            )
+            # Jos käyttäjä vastaa ei, tarjotaan jatkokysymys lisäinfoa varten
+            if last_topic and last_topic + "_lisä" in general_faq:
+                return general_faq[last_topic + "_lisä"] + "\n\nHaluatko vielä lisätietoa tästä aiheesta? 😊"
+            else:
+                return (
+                    "Voi ei! 😕 Ei hätää, voit olla suoraan yhteydessä asiakaspalveluumme:\n"
+                    "- 📞 09 123 4567\n"
+                    "- 📧 support@verkkokauppa.fi\n"
+                    "- ⏰ ma–pe 9–17"
+                )
 
     # --- Ystävälliset vastaukset ---
     tervehdykset = ["miten menee", "haloo", "moro", "hei", "moi", "terve", "hello", "päivää"]
@@ -193,7 +208,6 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
-
 
 
 
