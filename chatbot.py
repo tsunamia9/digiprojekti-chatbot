@@ -11,15 +11,16 @@ with open(file_path, "r", encoding="utf-8") as f:
     tuotteet = json.load(f)
 
 st.title("Verkkokaupan Chatbot")
-st.write("Hei! Olen verkkokaupan chatbot ja autan sinua mielelläni. Kuinka voin olla avuksi?")
+st.write("Hei! Olen verkkokaupan chatbot 🤖 Kuinka voin auttaa?")
 
-# Tallennetaan keskustelu streamlitissä
+# Tallennetaan keskustelu
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 # Käyttäjän syöte
 user_input = st.text_input("Kirjoita viesti:")
 
+# Perusvastaukset
 vastaukset = {
     "palautus": "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä.",
     "toimitus": "Toimitamme tuotteet 2–5 arkipäivässä.",
@@ -27,34 +28,43 @@ vastaukset = {
 }
 
 # --- LOGIIKKA ---
-
 if user_input:
     kysymys = user_input.lower()
     st.session_state.chat_history.append(("user", user_input))
 
+    # Lopetus
     if kysymys == "lopeta":
         vastaus = "Näkemiin! Toivottavasti olin avuksi."
-    
-    elif kysymys == "tuotteet":
+
+    # Tuotelistaus
+    elif "tuotte" in kysymys:
         lista = "\n".join([f"- {t['nimi']} ({t['kategoria']})" for t in tuotteet])
-        vastaus = f"Meiltä löytyy seuraavat tuotteet:\n{lista}"
+        vastaus = f"Tässä tuotteet:\n{lista}"
+
+    # --- AVAINSANAEHTOJA ---
+    elif "palaut" in kysymys:
+        vastaus = vastaukset["palautus"]
+
+    elif "toimit" in kysymys or "kuljet" in kysymys or "paket" in kysymys:
+        vastaus = vastaukset["toimitus"]
+
+    elif "auki" in kysymys or "ajat" in kysymys or "milloin olette auki" in kysymys:
+        vastaus = vastaukset["aukiolo"]
 
     else:
-        vastaus = vastaukset.get(
-            kysymys,
-            "Valitettavasti en tiedä siitä. Kysy jotain muuta verkkokauppaan liittyvää."
-        )
+        vastaus = "Valitettavasti en tiedä siitä. Kysy jotain muuta verkkokauppaan liittyvää."
 
+    # Tallennetaan bottiviesti
     st.session_state.chat_history.append(("assistant", vastaus))
 
 
-# --- NÄYTETÄÄN KESKUSTELU CHATILLÄ ---
-
+# --- CHATTINÄKYMÄ ---
 for sender, msg in st.session_state.chat_history:
     if sender == "user":
         st.chat_message("user").write(msg)
     else:
         st.chat_message("assistant").write(msg)
+
 
 
 
