@@ -29,6 +29,8 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "last_topic" not in st.session_state:
     st.session_state.last_topic = None
+if "awaiting_confirmation" not in st.session_state:
+    st.session_state.awaiting_confirmation = False  # odottaa käyttäjän myöntävää vastausta
 
 # --- Funktio vastauksen hakemiseen ---
 def get_vastaus(kysymys: str) -> str:
@@ -66,7 +68,7 @@ def get_vastaus(kysymys: str) -> str:
             "3. Maksu on turvallinen ja varmennettu.\n"
             "4. Saat vahvistuksen sähköpostiisi."
         ),
-        "alennukset": "Tarjoamme satunnaisia kampanjoita ja uutiskirjeen tilaajille alennuksia.",
+        "alennukset": "Tarjoamme kampanjoita ja alennuksia. Haluatko tietää lisää?",
         "alennukset_syva": (
             "Alennukset:\n"
             "- Uutiskirjeen tilaajat saavat kampanjakoodeja.\n"
@@ -93,20 +95,22 @@ def get_vastaus(kysymys: str) -> str:
         "tuki": "Voit ottaa yhteyttä asiakaspalveluumme sähköpostitse support@verkkokauppa.fi."
     }
 
-    # --- Syvempi vastaus jos käyttäjä vastaa myönteisesti ---
-    if st.session_state.last_topic and any(word in kysymys for word in myonteiset):
-        if st.session_state.last_topic == "palautus":
-            return vastaukset["palautus_syva"]
-        if st.session_state.last_topic == "toimitus":
-            return vastaukset["toimitus_syva"]
-        if st.session_state.last_topic == "maksutavat":
-            return vastaukset["maksutavat_syva"]
-        if st.session_state.last_topic == "alennukset":
-            return vastaukset["alennukset_syva"]
-        if st.session_state.last_topic == "tilausseuranta":
-            return vastaukset["tilausseuranta_syva"]
-        if st.session_state.last_topic == "vaihto":
-            return vastaukset["vaihto_syva"]
+    # --- Jos odotetaan myönteistä vastausta syvemmälle ohjeelle ---
+    if st.session_state.awaiting_confirmation and any(word in kysymys for word in myonteiset):
+        st.session_state.awaiting_confirmation = False
+        topic = st.session_state.last_topic
+        if topic == "palautus":
+            return vastaukset["palautus_syva"] + "\nAuttoiko tämä sinua?"
+        if topic == "toimitus":
+            return vastaukset["toimitus_syva"] + "\nAuttoiko tämä sinua?"
+        if topic == "maksutavat":
+            return vastaukset["maksutavat_syva"] + "\nAuttoiko tämä sinua?"
+        if topic == "alennukset":
+            return vastaukset["alennukset_syva"] + "\nHaluatko tietää vielä enemmän alennuksista?"
+        if topic == "tilausseuranta":
+            return vastaukset["tilausseuranta_syva"] + "\nAuttoiko tämä sinua?"
+        if topic == "vaihto":
+            return vastaukset["vaihto_syva"] + "\nAuttoiko tämä sinua?"
 
     # --- Ystävälliset vastaukset ---
     if any(sana in kysymys for sana in tervehdykset):
@@ -138,24 +142,30 @@ def get_vastaus(kysymys: str) -> str:
     # --- Pehmeä avainsanahaku ja konteksti ---
     if "palaut" in kysymys:
         st.session_state.last_topic = "palautus"
+        st.session_state.awaiting_confirmation = True
         return "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä. Haluatko tietää, miten palautus tehdään käytännössä?"
     if "toimit" in kysymys or "kuljet" in kysymys or "paket" in kysymys:
         st.session_state.last_topic = "toimitus"
+        st.session_state.awaiting_confirmation = True
         return "Toimitamme tuotteet 2–5 arkipäivässä. Haluatko tietää, miten toimitusta voi seurata?"
     if "auki" in kysymys or "ajat" in kysymys:
         st.session_state.last_topic = None
         return vastaukset["aukiolo"]
     if "maksu" in kysymys or "kortti" in kysymys or "paypal" in kysymys or "klarna" in kysymys:
         st.session_state.last_topic = "maksutavat"
+        st.session_state.awaiting_confirmation = True
         return "Hyväksymme Visa, Mastercard, PayPal ja Klarna. Haluatko tietää maksamisen tarkemmat ohjeet?"
     if "alenn" in kysymys or "kampanja" in kysymys:
         st.session_state.last_topic = "alennukset"
+        st.session_state.awaiting_confirmation = True
         return "Tarjoamme kampanjoita ja alennuksia. Haluatko tietää lisää alennusten käytöstä?"
     if "tilausseuranta" in kysymys or "seuranta" in kysymys:
         st.session_state.last_topic = "tilausseuranta"
+        st.session_state.awaiting_confirmation = True
         return "Voit seurata tilaustasi tililläsi. Haluatko ohjeet tilauksen seurantaan?"
     if "vaihto" in kysymys or "vaihda" in kysymys:
         st.session_state.last_topic = "vaihto"
+        st.session_state.awaiting_confirmation = True
         return "Voit vaihtaa tuotteita 30 päivän sisällä. Haluatko tietää tarkemmat vaihto-ohjeet?"
     if "lahjakortti" in kysymys or "lahja" in kysymys:
         st.session_state.last_topic = None
@@ -166,6 +176,7 @@ def get_vastaus(kysymys: str) -> str:
 
     # --- Fallback ---
     st.session_state.last_topic = None
+    st.session_state.awaiting_confirmation = False
     return (
         "Hmm… en ole varma mitä tarkoitit 🤔\n"
         "Ehkä haluat tietoa jostakin seuraavista:\n"
@@ -179,23 +190,30 @@ def get_vastaus(kysymys: str) -> str:
         "- Asiakastuki"
     )
 
-# --- Käyttäjän syöte ---
-user_input = st.text_input("Kirjoita viesti:", value="", key="input")
+# --- Chat-container, jotta pysytään alhaalla ---
+chat_container = st.empty()
 
-# --- Tyhjennä keskustelu -nappi ---
+# --- Syöttökenttä formissa (pysyy alhaalla) ---
+with st.form(key="chat_form", clear_on_submit=True):
+    user_input = st.text_input("Kirjoita viesti:", "")
+    submit_button = st.form_submit_button("Lähetä")
+
+# --- Tyhjennä keskustelu ---
 if st.button("Tyhjennä keskustelu"):
     st.session_state.chat_history = []
     st.session_state.last_topic = None
+    st.session_state.awaiting_confirmation = False
 
 # --- Logiikka vastauksen hakemiseen ---
-if user_input:
+if submit_button and user_input:
     st.session_state.chat_history.append(("user", user_input))
     vastaus = get_vastaus(user_input)
     st.session_state.chat_history.append(("assistant", vastaus))
 
 # --- Chat-historia ---
-for sender, msg in st.session_state.chat_history[-50:]:
-    st.chat_message(sender).write(msg)
+with chat_container.container():
+    for sender, msg in st.session_state.chat_history[-50:]:
+        st.chat_message(sender).write(msg)
 
 
 
