@@ -30,89 +30,38 @@ if "chat_history" not in st.session_state:
 if "last_topic" not in st.session_state:
     st.session_state.last_topic = None
 if "awaiting_confirmation" not in st.session_state:
-    st.session_state.awaiting_confirmation = False  # odottaa käyttäjän myöntävää vastausta
+    st.session_state.awaiting_confirmation = False  # odottaa käyttäjän vastausta "Auttoiko tämä?"
 
-# --- Funktio vastauksen hakemiseen ---
+# --- Vastauslogiikka ---
+positive_replies = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
+negative_replies = ["ei", "en", "en oikein", "en halua"]
+
 def get_vastaus(kysymys: str) -> str:
     kysymys = kysymys.lower()
+    
+    # --- Odotetaan vahvistusta ---
+    if st.session_state.awaiting_confirmation:
+        if any(word in kysymys for word in positive_replies):
+            st.session_state.awaiting_confirmation = False
+            st.session_state.last_topic = None
+            return random.choice([
+                "Hienoa! 😊 Ilo kuulla, että pystyin auttamaan!",
+                "Mahtavaa! 😄 Kiva että ohje auttoi!"
+            ])
+        elif any(word in kysymys for word in negative_replies):
+            st.session_state.awaiting_confirmation = False
+            st.session_state.last_topic = None
+            return (
+                "Voi ei 😅 Yritetään uudelleen:\n"
+                "Voit myös ottaa yhteyttä asiakaspalveluumme support@verkkokauppa.fi, "
+                "jos tarvitset tarkempaa apua."
+            )
 
-    # Ystävälliset vastaukset
+    # --- Ystävälliset vastaukset ---
     tervehdykset = ["hei", "moi", "terve", "hello", "päivää"]
     kiitokset = ["kiitos", "thx", "thanks", "kiitti"]
     kehumiset = ["hyvä", "kiva", "mahtava", "paras", "super"]
-    myonteiset = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "haluan", "kyllä kiitos"]
 
-    # Perus- ja syvät vastaukset
-    vastaukset = {
-        "palautus": "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä.",
-        "palautus_syva": (
-            "Palautus tapahtuu näin:\n"
-            "1. Täytä palautuslomake tililläsi.\n"
-            "2. Pakkaa tuote alkuperäiseen pakkaukseen.\n"
-            "3. Lähetä paketti takaisin osoitteeseen, joka löytyy palautuslomakkeesta.\n"
-            "4. Kun palautus on vastaanotettu, rahat palautetaan alkuperäiselle maksutavalle."
-        ),
-        "toimitus": "Toimitamme tuotteet 2–5 arkipäivässä.",
-        "toimitus_syva": (
-            "Toimituksen voit seurata näin:\n"
-            "1. Saat seurantakoodin sähköpostilla.\n"
-            "2. Pakkaukset toimitetaan valitulla kuljetustavalla.\n"
-            "3. Jos toimitus viivästyy, ota yhteyttä asiakaspalveluun."
-        ),
-        "aukiolo": "Asiakaspalvelumme on auki ma–pe klo 9–17.",
-        "maksutavat": "Hyväksymme Visa, Mastercard, PayPal ja Klarna-maksut.",
-        "maksutavat_syva": (
-            "Maksaminen tapahtuu näin:\n"
-            "1. Valitse maksutapa kassalla.\n"
-            "2. Syötä korttitiedot tai kirjaudu PayPaliin.\n"
-            "3. Maksu on turvallinen ja varmennettu.\n"
-            "4. Saat vahvistuksen sähköpostiisi."
-        ),
-        "alennukset": "Tarjoamme kampanjoita ja alennuksia. Haluatko tietää lisää?",
-        "alennukset_syva": (
-            "Alennukset:\n"
-            "- Uutiskirjeen tilaajat saavat kampanjakoodeja.\n"
-            "- Sesonkialennukset ja tarjouskampanjat vaihtelevat.\n"
-            "- Tarkista ajankohtaiset tarjoukset verkkosivuiltamme."
-        ),
-        "tilausseuranta": "Voit seurata tilaustasi sisäänkirjautumalla omalle tilillesi.",
-        "tilausseuranta_syva": (
-            "Tilausseuranta:\n"
-            "1. Kirjaudu tilillesi.\n"
-            "2. Valitse 'Omat tilaukset'.\n"
-            "3. Näet tilausten tilan ja seurantakoodit.\n"
-            "4. Saat myös ilmoituksia sähköpostiisi."
-        ),
-        "vaihto": "Voit vaihtaa tuotteita 30 päivän sisällä, kunhan ne ovat käyttämättömiä.",
-        "vaihto_syva": (
-            "Vaihto tapahtuu näin:\n"
-            "1. Täytä vaihtolomake tililläsi.\n"
-            "2. Pakkaa tuote alkuperäiseen pakkaukseen.\n"
-            "3. Lähetä paketti vaihtoon.\n"
-            "4. Saat uuden tuotteen, kun vanha on vastaanotettu."
-        ),
-        "lahjakortti": "Tarjoamme lahjakortteja, jotka ovat voimassa 12 kuukautta ostopäivästä.",
-        "tuki": "Voit ottaa yhteyttä asiakaspalveluumme sähköpostitse support@verkkokauppa.fi."
-    }
-
-    # --- Jos odotetaan myönteistä vastausta syvemmälle ohjeelle ---
-    if st.session_state.awaiting_confirmation and any(word in kysymys for word in myonteiset):
-        st.session_state.awaiting_confirmation = False
-        topic = st.session_state.last_topic
-        if topic == "palautus":
-            return vastaukset["palautus_syva"] + "\nAuttoiko tämä sinua?"
-        if topic == "toimitus":
-            return vastaukset["toimitus_syva"] + "\nAuttoiko tämä sinua?"
-        if topic == "maksutavat":
-            return vastaukset["maksutavat_syva"] + "\nAuttoiko tämä sinua?"
-        if topic == "alennukset":
-            return vastaukset["alennukset_syva"] + "\nHaluatko tietää vielä enemmän alennuksista?"
-        if topic == "tilausseuranta":
-            return vastaukset["tilausseuranta_syva"] + "\nAuttoiko tämä sinua?"
-        if topic == "vaihto":
-            return vastaukset["vaihto_syva"] + "\nAuttoiko tämä sinua?"
-
-    # --- Ystävälliset vastaukset ---
     if any(sana in kysymys for sana in tervehdykset):
         return random.choice([
             "Hei! 😊 Miten voin auttaa sinua tänään?",
@@ -139,34 +88,87 @@ def get_vastaus(kysymys: str) -> str:
         )
         return f"Tässä meidän tuotteet:\n{lista}"
 
-    # --- Pehmeä avainsanahaku ja konteksti ---
+    # --- Syvät vastaukset ---
+    vastaukset = {
+        "palautus": "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä.",
+        "palautus_syva": (
+            "Palautus tapahtuu näin:\n"
+            "1. Täytä palautuslomake tililläsi.\n"
+            "2. Pakkaa tuote alkuperäiseen pakkaukseen.\n"
+            "3. Lähetä paketti takaisin osoitteeseen, joka löytyy palautuslomakkeesta.\n"
+            "4. Kun palautus on vastaanotettu, rahat palautetaan alkuperäiselle maksutavalle."
+        ),
+        "toimitus": "Toimitamme tuotteet 2–5 arkipäivässä.",
+        "toimitus_syva": (
+            "Toimituksen voit seurata näin:\n"
+            "1. Saat seurantakoodin sähköpostilla.\n"
+            "2. Pakkaukset toimitetaan valitulla kuljetustavalla.\n"
+            "3. Jos toimitus viivästyy, ota yhteyttä asiakaspalveluun."
+        ),
+        "aukiolo": "Asiakaspalvelumme on auki ma–pe klo 9–17.",
+        "maksutavat": "Hyväksymme Visa, Mastercard, PayPal ja Klarna-maksut.",
+        "maksutavat_syva": (
+            "Maksaminen tapahtuu näin:\n"
+            "1. Valitse maksutapa kassalla.\n"
+            "2. Syötä korttitiedot tai kirjaudu PayPaliin.\n"
+            "3. Maksu on turvallinen ja varmennettu.\n"
+            "4. Saat vahvistuksen sähköpostiisi."
+        ),
+        "alennukset": "Tarjoamme kampanjoita ja alennuksia.",
+        "alennukset_syva": (
+            "Alennukset:\n"
+            "- Uutiskirjeen tilaajat saavat kampanjakoodeja.\n"
+            "- Sesonkialennukset ja tarjouskampanjat vaihtelevat.\n"
+            "- Tarkista ajankohtaiset tarjoukset verkkosivuiltamme."
+        ),
+        "tilausseuranta": "Voit seurata tilaustasi tililläsi.",
+        "tilausseuranta_syva": (
+            "Tilausseuranta:\n"
+            "1. Kirjaudu tilillesi.\n"
+            "2. Valitse 'Omat tilaukset'.\n"
+            "3. Näet tilausten tilan ja seurantakoodit.\n"
+            "4. Saat myös ilmoituksia sähköpostiisi."
+        ),
+        "vaihto": "Voit vaihtaa tuotteita 30 päivän sisällä, kunhan ne ovat käyttämättömiä.",
+        "vaihto_syva": (
+            "Vaihto tapahtuu näin:\n"
+            "1. Täytä vaihtolomake tililläsi.\n"
+            "2. Pakkaa tuote alkuperäiseen pakkaukseen.\n"
+            "3. Lähetä paketti vaihtoon.\n"
+            "4. Saat uuden tuotteen, kun vanha on vastaanotettu."
+        ),
+        "lahjakortti": "Tarjoamme lahjakortteja, jotka ovat voimassa 12 kuukautta ostopäivästä.",
+        "tuki": "Voit ottaa yhteyttä asiakaspalveluumme sähköpostitse support@verkkokauppa.fi."
+    }
+
+    # --- Pehmeä avainsanahaku ja syvä vastaus ---
     if "palaut" in kysymys:
         st.session_state.last_topic = "palautus"
         st.session_state.awaiting_confirmation = True
-        return "Voit palauttaa tuotteet 30 päivän sisällä ostopäivästä. Haluatko tietää, miten palautus tehdään käytännössä?"
+        return vastaukset["palautus_syva"] + "\n\nAuttoiko tämä sinua? 😊"
     if "toimit" in kysymys or "kuljet" in kysymys or "paket" in kysymys:
         st.session_state.last_topic = "toimitus"
         st.session_state.awaiting_confirmation = True
-        return "Toimitamme tuotteet 2–5 arkipäivässä. Haluatko tietää, miten toimitusta voi seurata?"
-    if "auki" in kysymys or "ajat" in kysymys:
-        st.session_state.last_topic = None
-        return vastaukset["aukiolo"]
+        return vastaukset["toimitus_syva"] + "\n\nAuttoiko tämä sinua? 😊"
     if "maksu" in kysymys or "kortti" in kysymys or "paypal" in kysymys or "klarna" in kysymys:
         st.session_state.last_topic = "maksutavat"
         st.session_state.awaiting_confirmation = True
-        return "Hyväksymme Visa, Mastercard, PayPal ja Klarna. Haluatko tietää maksamisen tarkemmat ohjeet?"
+        return vastaukset["maksutavat_syva"] + "\n\nAuttoiko tämä sinua? 😊"
     if "alenn" in kysymys or "kampanja" in kysymys:
         st.session_state.last_topic = "alennukset"
         st.session_state.awaiting_confirmation = True
-        return "Tarjoamme kampanjoita ja alennuksia. Haluatko tietää lisää alennusten käytöstä?"
+        return vastaukset["alennukset_syva"] + "\n\nHaluatko tietää vielä enemmän alennuksista? 😊"
     if "tilausseuranta" in kysymys or "seuranta" in kysymys:
         st.session_state.last_topic = "tilausseuranta"
         st.session_state.awaiting_confirmation = True
-        return "Voit seurata tilaustasi tililläsi. Haluatko ohjeet tilauksen seurantaan?"
+        return vastaukset["tilausseuranta_syva"] + "\n\nAuttoiko tämä sinua? 😊"
     if "vaihto" in kysymys or "vaihda" in kysymys:
         st.session_state.last_topic = "vaihto"
         st.session_state.awaiting_confirmation = True
-        return "Voit vaihtaa tuotteita 30 päivän sisällä. Haluatko tietää tarkemmat vaihto-ohjeet?"
+        return vastaukset["vaihto_syva"] + "\n\nAuttoiko tämä sinua? 😊"
+    if "auki" in kysymys or "ajat" in kysymys:
+        st.session_state.last_topic = None
+        return vastaukset["aukiolo"]
     if "lahjakortti" in kysymys or "lahja" in kysymys:
         st.session_state.last_topic = None
         return vastaukset["lahjakortti"]
@@ -190,10 +192,10 @@ def get_vastaus(kysymys: str) -> str:
         "- Asiakastuki"
     )
 
-# --- Chat-container, jotta pysytään alhaalla ---
+# --- Chat-container ---
 chat_container = st.empty()
 
-# --- Syöttökenttä formissa (pysyy alhaalla) ---
+# --- Syöttökenttä formissa ---
 with st.form(key="chat_form", clear_on_submit=True):
     user_input = st.text_input("Kirjoita viesti:", "")
     submit_button = st.form_submit_button("Lähetä")
@@ -214,6 +216,7 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
+
 
 
 
