@@ -13,7 +13,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
 # Selvitetään tämän Python-tiedoston sijainti
 base_path = os.path.dirname(__file__)
 file_path = os.path.join(base_path, "tuotteet.json")
@@ -30,7 +29,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 # Käyttäjän syöte (key=input)
-user_input = st.text_input("Kirjoita viesti:", key="input")
+user_input = st.text_input("Kirjoita viesti:", value="", key="input")
 
 # Perusvastaukset
 vastaukset = {
@@ -44,15 +43,10 @@ tervehdykset = ["hei", "moi", "terve", "hello", "päivää"]
 kiitokset = ["kiitos", "thx", "thanks", "kiitti"]
 kehumiset = ["hyvä", "kiva", "mahtava", "paras", "super"]
 
-
 # --- LOGIIKKA ---
 if user_input:
     kysymys = user_input.lower()
     st.session_state.chat_history.append(("user", user_input))
-
-    # ✨ Tyhjennetään kenttä turvallisesti
-    st.session_state["input"] = ""
-    st.rerun()
 
     # 1) Tervehdys
     if any(sana in kysymys for sana in tervehdykset):
@@ -93,10 +87,10 @@ if user_input:
 
     st.session_state.chat_history.append(("assistant", vastaus))
 
-
 # --- CHATTINÄKYMÄ ---
 for sender, msg in st.session_state.chat_history:
     st.chat_message(sender).write(msg)
+
 
 
 
