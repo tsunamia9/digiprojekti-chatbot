@@ -18,8 +18,12 @@ st.markdown("""
 base_path = os.path.dirname(__file__)
 file_path = os.path.join(base_path, "tuotteet.json")
 
-with open(file_path, "r", encoding="utf-8") as f:
-    tuotteet = json.load(f)
+try:
+    with open(file_path, "r", encoding="utf-8") as f:
+        tuotteet = json.load(f)
+except Exception as e:
+    tuotteet = []
+    print("Virhe ladattaessa tuotteita:", e)
 
 st.title("Verkkokaupan Chatbot 🤖")
 st.write("Hei! Olen verkkokaupan chatbot. Kuinka voin auttaa?")
@@ -33,8 +37,8 @@ if "awaiting_confirmation" not in st.session_state:
     st.session_state.awaiting_confirmation = False
 
 # --- Vastaukset ja FAQ ---
-positive_replies = ["kyl", "jea", "jep", "juu", "joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
-negative_replies = ["noup", "ei", "en", "en oikein", "en halua"]
+positive_replies = ["joo", "kyllä", "ok", "selvä", "go", "jatka", "kyllä kiitos"]
+negative_replies = ["ei", "en", "en oikein", "en halua"]
 
 # --- Yleiset FAQ-vastaukset ---
 general_faq = {
@@ -98,11 +102,11 @@ def get_vastaus(kysymys: str) -> str:
     kysymys = kysymys.lower()
 
     # --- Lopetus ensin ---
-        if "näkemiin" in kysymys:
+    if any(word in kysymys for word in ["lopeta", "näkemiin", "hei hei"]):
         st.session_state.awaiting_confirmation = False
         st.session_state.last_topic = None
         return "Näkemiin! 👋 Toivottavasti olin avuksi. Mukavaa päivänjatkoa! 😊"
-        
+
     # --- Jos odotetaan vahvistusta ---
     if st.session_state.awaiting_confirmation:
         positive = any(word in kysymys for word in positive_replies)
@@ -125,15 +129,17 @@ def get_vastaus(kysymys: str) -> str:
         ])
     if any(sana in kysymys for sana in kiitokset):
         return random.choice([
-            "Ole hyvä! 😊 Kiva että pystyin auttamaan.",
+            "Hieno juttu! 😄 Oli ilo auttaa.",
             "Ei kestä! 😊",
-            "Aina ilo auttaa!"
+            "Aina ilo auttaa! 😄"
         ])
     if any(sana in kysymys for sana in kehumiset):
         return "Kiitos! 😄 Teen parhaani auttaakseni."
 
     # --- Tuotelistaus ---
     if "tuotteet" in kysymys or ("näytä" in kysymys and "tuotte" in kysymys):
+        if not tuotteet:
+            return "Valitettavasti tuotteita ei ole saatavilla juuri nyt."
         lista = "\n".join(
             [f"- {t['nimi']} ({t['kategoria']}) – {t.get('hinta','Hinta ei saatavilla')}€" for t in tuotteet]
         )
@@ -183,9 +189,6 @@ if submit_button and user_input:
 with chat_container.container():
     for sender, msg in st.session_state.chat_history[-50:]:
         st.chat_message(sender).write(msg)
-
-
-
 
 
 
